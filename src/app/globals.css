@@ -1137,3 +1137,10 @@ p {
 .back-link:hover {
   background-color: #1a252f;
 }
+
+      
+        .wishlist-button.active {
+          color: #E53E3E;
+          background: #FEF2F2;
+          border-color: #FC8181;
+        }

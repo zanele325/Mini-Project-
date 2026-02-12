@@ -1,9 +1,13 @@
-// app/shop/page.js
 "use client";
 
 import { useState, useEffect } from "react";
 import { getAllProducts, getProductsByCulture, getProductsByOccasion } from "@/src/lib/products";
 import Link from "next/link";
+import { useCart } from '@/src/Context/CartContext';
+import { useAuth } from '@/src/Context/AuthContext';
+import { useWishlist } from '@/src/Context/WishlistContext';
+import { db } from '@/src/lib/firebase';
+import { doc, setDoc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
 
 export default function ShopPage() {
   const [products, setProducts] = useState([]);
@@ -13,11 +17,37 @@ export default function ShopPage() {
   const [selectedCulture, setSelectedCulture] = useState("all");
   const [selectedOccasion, setSelectedOccasion] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [wishlistItems, setWishlistItems] = useState([]);
+  const [wishlistCount, setWishlistCount] = useState(0);
 
-  // Sample data for filters (you can fetch these from Firebase too)
+  const { addToCart } = useCart();
+  const { user, isGuest } = useAuth();
+
+  // Sample data for filters
   const cultures = ["Xhosa", "Zulu", "Sotho", "Ndebele", "Tswana", "Venda", "Tsonga", "Pedi"];
   const occasions = ["Wedding", "Umemulo", "Funeral", "Lobola", "Heritage Day", "Initiation", "Coming of Age", "Traditional Ceremony"];
   const categories = ["Clothing", "Jewellery", "Accessories", "Footwear", "Headwear", "Blankets"];
+
+  // Fetch wishlist on mount
+  useEffect(() => {
+    if (user) {
+      fetchWishlist();
+    }
+  }, [user]);
+
+  const fetchWishlist = async () => {
+    try {
+      const wishlistRef = doc(db, 'wishlists', user.uid);
+      const wishlistDoc = await getDoc(wishlistRef);
+      if (wishlistDoc.exists()) {
+        const items = wishlistDoc.data().items || [];
+        setWishlistItems(items.map(item => item.id));
+        setWishlistCount(items.length);
+      }
+    } catch (error) {
+      console.error('Error fetching wishlist:', error);
+    }
+  };
 
   // Fetch products on component mount
   useEffect(() => {
@@ -41,28 +71,24 @@ export default function ShopPage() {
   useEffect(() => {
     let result = [...products];
 
-    // Filter by culture
     if (selectedCulture !== "all") {
       result = result.filter(product => 
         product.culture?.toLowerCase() === selectedCulture.toLowerCase()
       );
     }
 
-    // Filter by occasion
     if (selectedOccasion !== "all") {
       result = result.filter(product => 
         product.occasions?.includes(selectedOccasion)
       );
     }
 
-    // Filter by category
     if (selectedCategory !== "all") {
       result = result.filter(product => 
         product.category?.toLowerCase() === selectedCategory.toLowerCase()
       );
     }
 
-    // Filter by search query
     if (searchQuery.trim() !== "") {
       const query = searchQuery.toLowerCase();
       result = result.filter(product =>
@@ -75,17 +101,75 @@ export default function ShopPage() {
     setFilteredProducts(result);
   }, [searchQuery, selectedCulture, selectedOccasion, selectedCategory, products]);
 
-  // Handle adding to cart
-  const handleAddToCart = (product) => {
-    // In a real app, you would add to cart state/context
-    alert(`Added "${product.name}" to cart!`);
-    console.log("Added to cart:", product);
+  // Handle adding to wishlist - WITH HEART SHADING
+  const handleAddToWishlist = async (product) => {
+    // Redirect guests to login
+    if (!user) {
+      alert("Please sign in to add items to your wishlist");
+      window.location.href = '/login?redirect=/shop';
+      return;
+    }
+
+    // Check if item is already in wishlist
+    if (wishlistItems.includes(product.id)) {
+      alert(`"${product.name}" is already in your wishlist`);
+      return;
+    }
+
+    try {
+      const wishlistRef = doc(db, 'wishlists', user.uid);
+      const wishlistDoc = await getDoc(wishlistRef);
+      
+      // Create wishlist item
+      const wishlistItem = {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        salePrice: product.salePrice || null,
+        culture: product.culture,
+        category: product.category,
+        occasions: product.occasions || [],
+        description: product.description || '',
+        inStock: product.inStock !== false,
+        image: product.image || null,
+        addedAt: new Date().toISOString()
+      };
+
+      if (wishlistDoc.exists()) {
+        // Update existing wishlist
+        await updateDoc(wishlistRef, {
+          items: arrayUnion(wishlistItem)
+        });
+      } else {
+        // Create new wishlist
+        await setDoc(wishlistRef, {
+          items: [wishlistItem],
+          userId: user.uid,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+      }
+
+      // Update local state to shade the heart
+      setWishlistItems(prev => [...prev, product.id]);
+      setWishlistCount(prev => prev + 1);
+      
+      alert(`Added "${product.name}" to wishlist!`);
+    } catch (error) {
+      console.error('Error adding to wishlist:', error);
+      alert('Failed to add to wishlist. Please try again.');
+    }
   };
 
-  // Handle adding to wishlist
-  const handleAddToWishlist = (product) => {
-    alert(`Added "${product.name}" to wishlist!`);
-    console.log("Added to wishlist:", product);
+  // Handle adding to cart
+  const handleAddToCart = (product) => {
+    addToCart(product);
+    alert(`Added "${product.name}" to cart!`);
+  };
+
+  // Check if product is in wishlist
+  const isInWishlist = (productId) => {
+    return wishlistItems.includes(productId);
   };
 
   // Render star rating
@@ -220,7 +304,6 @@ export default function ShopPage() {
               <div key={product.id} className="enhanced-product-card">
                 {/* Product Image */}
                 <div className="product-image-container">
-                  {/* Placeholder image - in real app, use product.imageUrl */}
                   <div style={{
                     width: '100%',
                     height: '100%',
@@ -235,62 +318,55 @@ export default function ShopPage() {
                      product.category === 'Footwear' ? '👞' : '🎁'}
                   </div>
                   
-                  {/* Badges */}
                   <div className="product-badges">
                     <span className="culture-badge">{product.culture}</span>
                     {product.inStock && <span className="stock-badge">In Stock</span>}
                   </div>
 
-                  {/* Quick View Overlay */}
                   <div className="quick-view-overlay">
                     <div className="quick-view-content">
                       <h4>Quick Details</h4>
                       <ul className="quick-view-features">
                         {product.features?.slice(0, 3).map((feature, index) => (
-                          <li key={index}>{feature}</li>
+                          <li key={`feature-${product.id}-${index}`}>{feature}</li> 
                         ))}
                       </ul>
-                      <button className="quick-view-button">View Details</button>
+                     <Link href={`/product/${product.id}`} className="quick-view-button">
+  View Details
+</Link>
                     </div>
                   </div>
                 </div>
 
-                {/* Product Content */}
                 <div className="product-content">
-                  {/* Occasion Tags */}
                   <div className="occasion-tags">
                     {product.occasions?.slice(0, 3).map((occasion, index) => (
-                      <span key={index} className="occasion-tag">{occasion}</span>
+                      <span key={`occasion-${product.id}-${index}`} className="occasion-tag">{occasion}</span> 
                     ))}
                     {product.occasions?.length > 3 && (
                       <span className="occasion-tag">+{product.occasions.length - 3}</span>
                     )}
                   </div>
 
-                  {/* Product Header with Name and Price */}
                   <div className="product-header">
                     <h3 className="product-name">{product.name}</h3>
                     <div className="product-price">R {product.price?.toFixed(2)}</div>
                   </div>
 
-                  {/* Product Description */}
                   <p className="product-description">
                     {product.description || "Traditional attire with cultural significance"}
                   </p>
 
-                  {/* Features */}
                   <div className="product-features">
                     {product.materials?.slice(0, 2).map((material, index) => (
-                      <span key={index} className="feature-tag">{material}</span>
+                      <span key={`material-${product.id}-${index}`} className="feature-tag">{material}</span> 
                     ))}
                     {product.features?.slice(0, 1).map((feature, index) => (
-                      <span key={index} className="feature-tag">{feature}</span>
+                      <span key={`feature-tag-${product.id}-${index}`} className="feature-tag">{feature}</span> 
                     ))}
                   </div>
 
-                  {/* Meta Information and Actions */}
                   <div className="product-meta">
-                    {/* Rating */}
                     <div className="product-rating">
                       <div className="rating-stars">
                         {renderStars(product.rating || 4.5)}
@@ -300,12 +376,11 @@ export default function ShopPage() {
                       </span>
                     </div>
 
-                    {/* Actions */}
                     <div className="product-actions">
                       <button 
-                        className="wishlist-button"
+                        className={`wishlist-button ${isInWishlist(product.id) ? 'active' : ''}`}
                         onClick={() => handleAddToWishlist(product)}
-                        title="Add to wishlist"
+                        title={isInWishlist(product.id) ? "In your wishlist" : "Add to wishlist"}
                       >
                         ♡
                       </button>
@@ -323,6 +398,15 @@ export default function ShopPage() {
           </div>
         )}
       </div>
+
+      {/* Add this CSS to your existing styles
+      <style jsx>{`
+        .wishlist-button.active {
+          color: #E53E3E;
+          background: #FEF2F2;
+          border-color: #FC8181;
+        }
+      `}</style> */}
     </div>
   );
 }
