@@ -6,7 +6,22 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from '@/src/Context/AuthContext';
 import { useCart } from '@/src/Context/CartContext';
 import { useWishlist } from '@/src/Context/WishlistContext';
-
+import { 
+  Search, 
+  ShoppingCart, 
+  Heart,
+  User,
+  Menu,
+  X,
+  ChevronDown,
+  Package,
+  LayoutDashboard,
+  ShoppingBag,
+  List,
+  BarChart3,
+  LogOut,
+  UserCircle
+} from "lucide-react";
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -78,669 +93,966 @@ export default function Navigation() {
   };
 
   return (
-    <header className="header">
-      <div className="container header-content">
-        {/* Logo */}
-        <Link href="/" className="logo">
-          <div className="logo-icon">iS</div>
-          <div className="logo-text">iSiko Studio</div>
-        </Link>
-        
-        {/* Desktop Navigation */}
-        <nav className="nav-links">
-          <Link href="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>Home</Link>
-          <Link href="/shop" className={`nav-link ${isActive('/shop') ? 'active' : ''}`}>Shop</Link>
-          <Link href="/occasions" className={`nav-link ${isActive('/occasions') ? 'active' : ''}`}>Occasions</Link>
-          <Link href="/cultures" className={`nav-link ${isActive('/cultures') ? 'active' : ''}`}>Cultures</Link>
-          <Link href="/about" className={`nav-link ${isActive('/about') ? 'active' : ''}`}>About</Link>
-        </nav>
-        
-        {/* Right Icons */}
-        <div className="right-icons">
-          <button className="icon-button" onClick={handleSearchClick} title="Search">🔍</button>
-         <button 
-  className="icon-button"
-  onClick={handleWishlistClick}
-  title="Wishlist"
->
-  ♡
-  {user && wishlistCount > 0 && (
-    <span className="icon-badge">{wishlistCount}</span>
-  )}
-</button>
-          
-          <button className="icon-button cart-button" onClick={handleCartClick} title="Cart">
-            🛒
-            {cartCount > 0 && <span className="icon-badge">{cartCount}</span>}
-          </button>
-          
-          {/* User Menu */}
-          <div className="user-menu-wrapper">
-            {user ? (
-              <>
-                <button className="user-button" onClick={() => setShowUserMenu(!showUserMenu)} title="Account">
-                  <div className="user-avatar">{getUserInitials()}</div>
-                </button>
-                
-                {showUserMenu && (
-                  <>
-                    <div className="menu-backdrop" onClick={() => setShowUserMenu(false)} />
-                    
-                    <div className="user-dropdown">
-                      {/* User Info Header */}
-                      <div className="dropdown-header">
-                        <div className="dropdown-user-avatar">{getUserInitials()}</div>
-                        <div className="dropdown-user-info">
-                          <div className="dropdown-user-name">{getUserDisplayName()}</div>
-                          <div className="dropdown-user-email">{user.email}</div>
-                          <div className="dropdown-user-role">
-                            {isAdmin ? 'Administrator' : 'Customer'}
-                          </div>
-                        </div>
-                      </div>
+    <>
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
+      `}</style>
+      
+      <header style={{
+        position: 'sticky',
+        top: 0,
+        background: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(10px)',
+        borderBottom: '1px solid #e0e0e0',
+        zIndex: 100,
+        padding: '16px 0',
+        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      }}>
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          padding: '0 24px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          {/* Logo */}
+          <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{
+              width: '44px',
+              height: '44px',
+              background: 'linear-gradient(135deg, #B38B59 0%, #8B6A3D 100%)',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontWeight: '700',
+              fontSize: '18px',
+              fontFamily: "'Crimson Pro', serif",
+              boxShadow: '0 4px 12px rgba(179, 139, 89, 0.25)'
+            }}>
+              iS
+            </div>
+            <div>
+              <div style={{ 
+                fontSize: '20px', 
+                fontWeight: '700', 
+                color: '#1A1A1A',
+                fontFamily: "'Crimson Pro', serif",
+                lineHeight: '1'
+              }}>
+                iSiko Studio
+              </div>
+              <div style={{ 
+                fontSize: '11px', 
+                color: '#B38B59',
+                fontWeight: '500',
+                letterSpacing: '0.5px'
+              }}>
+                CULTURAL HERITAGE
+              </div>
+            </div>
+          </Link>
 
-                      <div className="dropdown-divider"></div>
+          {/* Desktop Navigation */}
+          <nav style={{ 
+            display: 'flex', 
+            gap: '32px', 
+            alignItems: 'center'
+          }}
+          className="desktop-nav">
+            <Link href="/" style={{
+              textDecoration: 'none',
+              color: isActive('/') ? '#B38B59' : '#1A1A1A',
+              fontSize: '15px',
+              fontWeight: isActive('/') ? '600' : '500',
+              transition: 'color 0.2s',
+              position: 'relative'
+            }}>
+              Home
+              {isActive('/') && (
+                <div style={{
+                  position: 'absolute',
+                  bottom: '-20px',
+                  left: 0,
+                  right: 0,
+                  height: '3px',
+                  background: 'linear-gradient(135deg, #B38B59 0%, #8B6A3D 100%)',
+                  borderRadius: '3px 3px 0 0'
+                }}></div>
+              )}
+            </Link>
+            <Link href="/shop" style={{
+              textDecoration: 'none',
+              color: isActive('/shop') ? '#B38B59' : '#1A1A1A',
+              fontSize: '15px',
+              fontWeight: isActive('/shop') ? '600' : '500',
+              transition: 'color 0.2s',
+              position: 'relative'
+            }}>
+              Shop
+              {isActive('/shop') && (
+                <div style={{
+                  position: 'absolute',
+                  bottom: '-20px',
+                  left: 0,
+                  right: 0,
+                  height: '3px',
+                  background: 'linear-gradient(135deg, #B38B59 0%, #8B6A3D 100%)',
+                  borderRadius: '3px 3px 0 0'
+                }}></div>
+              )}
+            </Link>
+            <Link href="/occasions" style={{
+              textDecoration: 'none',
+              color: isActive('/occasions') ? '#B38B59' : '#1A1A1A',
+              fontSize: '15px',
+              fontWeight: isActive('/occasions') ? '600' : '500',
+              transition: 'color 0.2s',
+              position: 'relative'
+            }}>
+              Occasions
+              {isActive('/occasions') && (
+                <div style={{
+                  position: 'absolute',
+                  bottom: '-20px',
+                  left: 0,
+                  right: 0,
+                  height: '3px',
+                  background: 'linear-gradient(135deg, #B38B59 0%, #8B6A3D 100%)',
+                  borderRadius: '3px 3px 0 0'
+                }}></div>
+              )}
+            </Link>
+            <Link href="/cultures" style={{
+              textDecoration: 'none',
+              color: isActive('/cultures') ? '#B38B59' : '#1A1A1A',
+              fontSize: '15px',
+              fontWeight: isActive('/cultures') ? '600' : '500',
+              transition: 'color 0.2s',
+              position: 'relative'
+            }}>
+              Cultures
+              {isActive('/cultures') && (
+                <div style={{
+                  position: 'absolute',
+                  bottom: '-20px',
+                  left: 0,
+                  right: 0,
+                  height: '3px',
+                  background: 'linear-gradient(135deg, #B38B59 0%, #8B6A3D 100%)',
+                  borderRadius: '3px 3px 0 0'
+                }}></div>
+              )}
+            </Link>
+            <Link href="/about" style={{
+              textDecoration: 'none',
+              color: isActive('/about') ? '#B38B59' : '#1A1A1A',
+              fontSize: '15px',
+              fontWeight: isActive('/about') ? '600' : '500',
+              transition: 'color 0.2s',
+              position: 'relative'
+            }}>
+              About
+              {isActive('/about') && (
+                <div style={{
+                  position: 'absolute',
+                  bottom: '-20px',
+                  left: 0,
+                  right: 0,
+                  height: '3px',
+                  background: 'linear-gradient(135deg, #B38B59 0%, #8B6A3D 100%)',
+                  borderRadius: '3px 3px 0 0'
+                }}></div>
+              )}
+            </Link>
+          </nav>
 
-                      {/* Customer Menu */}
-                      <Link href="/profile" className="dropdown-item" onClick={() => setShowUserMenu(false)}>
-                        <span className="item-icon">👤</span>
-                        <span className="item-title">My Profile</span>
-                      </Link>
-                      
-                      <Link href="/orders" className="dropdown-item" onClick={() => setShowUserMenu(false)}>
-                        <span className="item-icon">📦</span>
-                        <span className="item-title">Order History</span>
-                      </Link>
-                      
-                      <Link href="/wishlist" className="dropdown-item" onClick={() => setShowUserMenu(false)}>
-                        <span className="item-icon">♡</span>
-                        <span className="item-title">Wishlist</span>
-                      </Link>
+          {/* Right Side Icons */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }} className="right-icons">
+            {/* Search Button */}
+            <button 
+              onClick={handleSearchClick}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '8px',
+                borderRadius: '8px',
+                transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#F5F5F5'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+              title="Search"
+            >
+              <Search size={22} color="#1A1A1A" />
+            </button>
 
-                      {/* ADMIN SECTION - Professional, clean, with blue header */}
-                      {isAdmin && (
-                        <>
-                          <div className="dropdown-divider"></div>
-                          <div className="dropdown-admin-section">
-                            <div className="dropdown-admin-header">Administrator</div>
-                            <div className="dropdown-admin-links">
-                              <Link href="/admin" className="dropdown-admin-link" onClick={() => setShowUserMenu(false)}>
-                                Dashboard
-                              </Link>
-                              <Link href="/admin/products" className="dropdown-admin-link" onClick={() => setShowUserMenu(false)}>
-                                Products
-                              </Link>
-                              <Link href="/admin/orders" className="dropdown-admin-link" onClick={() => setShowUserMenu(false)}>
-                                Orders
-                              </Link>
-                              <Link href="/admin/categories" className="dropdown-admin-link" onClick={() => setShowUserMenu(false)}>
-                                Categories
-                              </Link>
-                              <Link href="/admin/reports" className="dropdown-admin-link" onClick={() => setShowUserMenu(false)}>
-                                Reports
-                              </Link>
+            {/* Wishlist Button */}
+            <button 
+              onClick={handleWishlistClick}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '8px',
+                borderRadius: '8px',
+                transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#F5F5F5'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+              title="Wishlist"
+            >
+              <Heart size={22} color="#1A1A1A" />
+              {user && wishlistCount > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: '2px',
+                  right: '2px',
+                  background: '#E74C3C',
+                  color: 'white',
+                  fontSize: '11px',
+                  fontWeight: '700',
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '2px solid white'
+                }}>
+                  {wishlistCount}
+                </span>
+              )}
+            </button>
+
+            {/* Cart Button */}
+            <button 
+              onClick={handleCartClick}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '8px',
+                borderRadius: '8px',
+                transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#F5F5F5'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+              title="Cart"
+            >
+              <ShoppingCart size={22} color="#1A1A1A" />
+              {cartCount > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: '2px',
+                  right: '2px',
+                  background: '#E74C3C',
+                  color: 'white',
+                  fontSize: '11px',
+                  fontWeight: '700',
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '2px solid white'
+                }}>
+                  {cartCount}
+                </span>
+              )}
+            </button>
+
+            {/* User Menu */}
+            <div style={{ position: 'relative' }}>
+              {user ? (
+                <>
+                  <button 
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: 0
+                    }}
+                    title="Account"
+                  >
+                    <div style={{
+                      width: '44px',
+                      height: '44px',
+                      background: 'linear-gradient(135deg, #B38B59 0%, #8B6A3D 100%)',
+                      color: 'white',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: '600',
+                      fontSize: '18px',
+                      transition: 'all 0.2s',
+                      border: '2px solid transparent',
+                      boxShadow: '0 2px 8px rgba(179, 139, 89, 0.2)'
+                    }}>
+                      {getUserInitials()}
+                    </div>
+                  </button>
+
+                  {showUserMenu && (
+                    <>
+                      {/* Backdrop */}
+                      <div 
+                        onClick={() => setShowUserMenu(false)}
+                        style={{
+                          position: 'fixed',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          zIndex: 998
+                        }}
+                      />
+
+                      {/* Dropdown Menu */}
+                      <div style={{
+                        position: 'absolute',
+                        top: 'calc(100% + 12px)',
+                        right: 0,
+                        background: 'white',
+                        borderRadius: '16px',
+                        boxShadow: '0 10px 40px rgba(0,0,0,0.1)',
+                        width: '280px',
+                        zIndex: 999,
+                        overflow: 'hidden',
+                        border: '1px solid #f0f0f0',
+                        animation: 'slideDown 0.2s ease'
+                      }}>
+                        {/* User Info Header */}
+                        <div style={{
+                          padding: '20px',
+                          background: 'linear-gradient(135deg, #FFF9F0 0%, #FFF5E6 100%)',
+                          borderBottom: '1px solid #f0e6d6'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div style={{
+                              width: '48px',
+                              height: '48px',
+                              background: 'linear-gradient(135deg, #B38B59 0%, #8B6A3D 100%)',
+                              color: 'white',
+                              borderRadius: '50%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontWeight: '600',
+                              fontSize: '20px',
+                              border: '2px solid white',
+                              boxShadow: '0 4px 12px rgba(179, 139, 89, 0.2)'
+                            }}>
+                              {getUserInitials()}
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <div style={{
+                                fontWeight: '600',
+                                color: '#1A1A1A',
+                                fontSize: '15px',
+                                marginBottom: '4px'
+                              }}>
+                                {getUserDisplayName()}
+                              </div>
+                              <div style={{
+                                fontSize: '12px',
+                                color: '#666',
+                                marginBottom: '6px',
+                                wordBreak: 'break-word'
+                              }}>
+                                {user.email}
+                              </div>
+                              <div style={{
+                                display: 'inline-block',
+                                padding: '4px 10px',
+                                background: 'white',
+                                borderRadius: '20px',
+                                fontSize: '11px',
+                                fontWeight: '600',
+                                color: '#B38B59',
+                                border: '1px solid #f0e6d6'
+                              }}>
+                                {isAdmin ? 'Administrator' : 'Customer'}
+                              </div>
                             </div>
                           </div>
-                        </>
-                      )}
+                        </div>
 
-                      {/* LOGOUT BUTTON */}
-                      <div className="dropdown-divider"></div>
-                      <button className="dropdown-item logout-button" onClick={handleLogout}>
-                        <span className="item-icon">🚪</span>
-                        <span className="item-title">Sign Out</span>
-                      </button>
-                    </div>
-                  </>
-                )}
-              </>
-            ) : (
-              <button className="login-button" onClick={handleLoginClick}>
-                <span className="login-icon">👤</span>
-                <span className="login-text">Sign In</span>
-              </button>
-            )}
+                        {/* Menu Items */}
+                        <div style={{ padding: '8px 0' }}>
+                          <Link 
+                            href="/profile" 
+                            onClick={() => setShowUserMenu(false)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '12px',
+                              padding: '12px 20px',
+                              color: '#1A1A1A',
+                              textDecoration: 'none',
+                              fontSize: '14px',
+                              transition: 'background 0.2s',
+                              fontWeight: '500'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = '#F8F8F8'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                          >
+                            <UserCircle size={20} color="#666" />
+                            My Profile
+                          </Link>
+
+                          <Link 
+                            href="/orders" 
+                            onClick={() => setShowUserMenu(false)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '12px',
+                              padding: '12px 20px',
+                              color: '#1A1A1A',
+                              textDecoration: 'none',
+                              fontSize: '14px',
+                              transition: 'background 0.2s',
+                              fontWeight: '500'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = '#F8F8F8'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                          >
+                            <Package size={20} color="#666" />
+                            Order History
+                          </Link>
+
+                          <Link 
+                            href="/wishlist" 
+                            onClick={() => setShowUserMenu(false)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '12px',
+                              padding: '12px 20px',
+                              color: '#1A1A1A',
+                              textDecoration: 'none',
+                              fontSize: '14px',
+                              transition: 'background 0.2s',
+                              fontWeight: '500'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = '#F8F8F8'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                          >
+                            <Heart size={20} color="#666" />
+                            Wishlist
+                          </Link>
+
+                           <button 
+                            onClick={handleLogout}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '12px',
+                              padding: '12px 20px',
+                              color: '#E74C3C',
+                              background: 'transparent',
+                              border: 'none',
+                              fontSize: '14px',
+                              transition: 'background 0.2s',
+                              cursor: 'pointer',
+                              width: '100%',
+                              textAlign: 'left',
+                              fontWeight: '500',
+                              fontFamily: 'inherit'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = '#FEF2F2'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                          >
+                            <LogOut size={20} color="#E74C3C" />
+                            <span style={{ color: '#E74C3C' }}>Sign Out</span>
+                          </button>
+                        </div>
+
+                        {/* Admin Section */}
+                        {isAdmin && (
+                          <>
+                            <div style={{ height: '1px', background: '#f0f0f0', margin: '8px 0' }}></div>
+                            <div style={{ padding: '8px 0' }}>
+                              <div style={{
+                                padding: '8px 20px 4px',
+                                fontSize: '12px',
+                                fontWeight: '600',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px',
+                                color: '#B38B59'
+                              }}>
+                                Administrator
+                              </div>
+                              
+                              <Link 
+                                href="/admin" 
+                                onClick={() => setShowUserMenu(false)}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '12px',
+                                  padding: '10px 20px 10px 32px',
+                                  color: '#4A5568',
+                                  textDecoration: 'none',
+                                  fontSize: '14px',
+                                  transition: 'all 0.2s',
+                                  borderLeft: '2px solid transparent'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = '#F8F8F8';
+                                  e.currentTarget.style.borderLeftColor = '#B38B59';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = 'transparent';
+                                  e.currentTarget.style.borderLeftColor = 'transparent';
+                                }}
+                              >
+                                <LayoutDashboard size={18} color="#666" />
+                                Dashboard
+                              </Link>
+
+                              <Link 
+                                href="/admin/products" 
+                                onClick={() => setShowUserMenu(false)}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '12px',
+                                  padding: '10px 20px 10px 32px',
+                                  color: '#4A5568',
+                                  textDecoration: 'none',
+                                  fontSize: '14px',
+                                  transition: 'all 0.2s',
+                                  borderLeft: '2px solid transparent'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = '#F8F8F8';
+                                  e.currentTarget.style.borderLeftColor = '#B38B59';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = 'transparent';
+                                  e.currentTarget.style.borderLeftColor = 'transparent';
+                                }}
+                              >
+                                <ShoppingBag size={18} color="#666" />
+                                Products
+                              </Link>
+
+                              <Link 
+                                href="/admin/orders" 
+                                onClick={() => setShowUserMenu(false)}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '12px',
+                                  padding: '10px 20px 10px 32px',
+                                  color: '#4A5568',
+                                  textDecoration: 'none',
+                                  fontSize: '14px',
+                                  transition: 'all 0.2s',
+                                  borderLeft: '2px solid transparent'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = '#F8F8F8';
+                                  e.currentTarget.style.borderLeftColor = '#B38B59';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = 'transparent';
+                                  e.currentTarget.style.borderLeftColor = 'transparent';
+                                }}
+                              >
+                                <Package size={18} color="#666" />
+                                Orders
+                              </Link>
+
+                              
+
+                              <Link 
+                                href="/admin/reports" 
+                                onClick={() => setShowUserMenu(false)}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '12px',
+                                  padding: '10px 20px 10px 32px',
+                                  color: '#4A5568',
+                                  textDecoration: 'none',
+                                  fontSize: '14px',
+                                  transition: 'all 0.2s',
+                                  borderLeft: '2px solid transparent'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.background = '#F8F8F8';
+                                  e.currentTarget.style.borderLeftColor = '#B38B59';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.background = 'transparent';
+                                  e.currentTarget.style.borderLeftColor = 'transparent';
+                                }}
+                              >
+                                <BarChart3 size={18} color="#666" />
+                                Reports
+                              </Link>
+
+                               <button 
+                            onClick={handleLogout}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '12px',
+                              padding: '12px 20px',
+                              color: '#E74C3C',
+                              background: 'transparent',
+                              border: 'none',
+                              fontSize: '14px',
+                              transition: 'background 0.2s',
+                              cursor: 'pointer',
+                              width: '100%',
+                              textAlign: 'left',
+                              fontWeight: '500',
+                              fontFamily: 'inherit'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = '#FEF2F2'}
+                            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                          >
+                            <LogOut size={20} color="#E74C3C" />
+                            <span style={{ color: '#E74C3C' }}>Sign Out</span>
+                          </button>
+                            </div>
+                          </>
+                        )}
+
+                        {/* Logout */}
+                        <div style={{ height: '1px', background: '#f0f0f0', margin: '8px 0' }}></div>
+                        <div style={{ padding: '8px 0' }}>
+                          
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </>
+              ) : (
+                <button 
+                  onClick={handleLoginClick}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 20px',
+                    background: 'white',
+                    border: '1.5px solid #e0e0e0',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    color: '#1A1A1A',
+                    fontWeight: '500',
+                    fontSize: '14px',
+                    fontFamily: 'inherit'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#F8F8F8';
+                    e.currentTarget.style.borderColor = '#B38B59';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'white';
+                    e.currentTarget.style.borderColor = '#e0e0e0';
+                  }}
+                >
+                  <User size={18} />
+                  Sign In
+                </button>
+              )}
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button 
+              onClick={() => setShowMobileMenu(!showMobileMenu)}
+              style={{
+                display: 'none',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '8px'
+              }}
+              className="mobile-menu-btn"
+            >
+              {showMobileMenu ? <X size={24} color="#1A1A1A" /> : <Menu size={24} color="#1A1A1A" />}
+            </button>
           </div>
         </div>
-        
-        {/* Mobile Menu Button */}
-        <button className="mobile-menu-button" onClick={() => setShowMobileMenu(!showMobileMenu)}>
-          {showMobileMenu ? '✕' : '☰'}
-        </button>
-      </div>
 
-      {/* Mobile Navigation */}
-      {showMobileMenu && (
-        <div className="mobile-nav">
-          <Link href="/" className={`mobile-nav-link ${isActive('/') ? 'active' : ''}`} onClick={() => setShowMobileMenu(false)}>Home</Link>
-          <Link href="/shop" className={`mobile-nav-link ${isActive('/shop') ? 'active' : ''}`} onClick={() => setShowMobileMenu(false)}>Shop</Link>
-          <Link href="/occasions" className={`mobile-nav-link ${isActive('/occasions') ? 'active' : ''}`} onClick={() => setShowMobileMenu(false)}>Occasions</Link>
-          <Link href="/cultures" className={`mobile-nav-link ${isActive('/cultures') ? 'active' : ''}`} onClick={() => setShowMobileMenu(false)}>Cultures</Link>
-          <Link href="/about" className={`mobile-nav-link ${isActive('/about') ? 'active' : ''}`} onClick={() => setShowMobileMenu(false)}>About</Link>
-          
-          {!user ? (
-            <button className="mobile-login-button" onClick={() => { setShowMobileMenu(false); handleLoginClick(); }}>
-              <span>👤</span> Sign In / Register
-            </button>
-          ) : (
-            <>
-              {isAdmin && (
+        {/* Mobile Menu */}
+        {showMobileMenu && (
+          <div style={{
+            position: 'fixed',
+            top: '76px',
+            left: 0,
+            right: 0,
+            background: 'white',
+            padding: '24px',
+            borderTop: '1px solid #f0f0f0',
+            boxShadow: '0 10px 20px rgba(0,0,0,0.05)',
+            zIndex: 997,
+            maxHeight: 'calc(100vh - 76px)',
+            overflowY: 'auto'
+          }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <Link 
+                href="/" 
+                onClick={() => setShowMobileMenu(false)}
+                style={{
+                  padding: '14px 20px',
+                  color: isActive('/') ? '#B38B59' : '#1A1A1A',
+                  textDecoration: 'none',
+                  fontSize: '16px',
+                  fontWeight: isActive('/') ? '600' : '500',
+                  borderRadius: '8px',
+                  background: isActive('/') ? '#FFF9F0' : 'transparent',
+                  transition: 'background 0.2s'
+                }}
+              >
+                Home
+              </Link>
+              <Link 
+                href="/shop" 
+                onClick={() => setShowMobileMenu(false)}
+                style={{
+                  padding: '14px 20px',
+                  color: isActive('/shop') ? '#B38B59' : '#1A1A1A',
+                  textDecoration: 'none',
+                  fontSize: '16px',
+                  fontWeight: isActive('/shop') ? '600' : '500',
+                  borderRadius: '8px',
+                  background: isActive('/shop') ? '#FFF9F0' : 'transparent',
+                  transition: 'background 0.2s'
+                }}
+              >
+                Shop
+              </Link>
+              <Link 
+                href="/occasions" 
+                onClick={() => setShowMobileMenu(false)}
+                style={{
+                  padding: '14px 20px',
+                  color: isActive('/occasions') ? '#B38B59' : '#1A1A1A',
+                  textDecoration: 'none',
+                  fontSize: '16px',
+                  fontWeight: isActive('/occasions') ? '600' : '500',
+                  borderRadius: '8px',
+                  background: isActive('/occasions') ? '#FFF9F0' : 'transparent',
+                  transition: 'background 0.2s'
+                }}
+              >
+                Occasions
+              </Link>
+              <Link 
+                href="/cultures" 
+                onClick={() => setShowMobileMenu(false)}
+                style={{
+                  padding: '14px 20px',
+                  color: isActive('/cultures') ? '#B38B59' : '#1A1A1A',
+                  textDecoration: 'none',
+                  fontSize: '16px',
+                  fontWeight: isActive('/cultures') ? '600' : '500',
+                  borderRadius: '8px',
+                  background: isActive('/cultures') ? '#FFF9F0' : 'transparent',
+                  transition: 'background 0.2s'
+                }}
+              >
+                Cultures
+              </Link>
+              <Link 
+                href="/about" 
+                onClick={() => setShowMobileMenu(false)}
+                style={{
+                  padding: '14px 20px',
+                  color: isActive('/about') ? '#B38B59' : '#1A1A1A',
+                  textDecoration: 'none',
+                  fontSize: '16px',
+                  fontWeight: isActive('/about') ? '600' : '500',
+                  borderRadius: '8px',
+                  background: isActive('/about') ? '#FFF9F0' : 'transparent',
+                  transition: 'background 0.2s'
+                }}
+              >
+                About
+              </Link>
+
+              {!user ? (
+                <button 
+                  onClick={() => { setShowMobileMenu(false); handleLoginClick(); }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '12px',
+                    padding: '14px 20px',
+                    background: 'linear-gradient(135deg, #B38B59 0%, #8B6A3D 100%)',
+                    border: 'none',
+                    borderRadius: '10px',
+                    color: 'white',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    marginTop: '16px',
+                    width: '100%',
+                    fontFamily: 'inherit'
+                  }}
+                >
+                  <User size={20} />
+                  Sign In / Register
+                </button>
+              ) : (
                 <>
-                  <div className="mobile-divider"></div>
-                  <div className="mobile-admin-label">Administrator</div>
-                  <Link href="/admin" className="mobile-nav-link" onClick={() => setShowMobileMenu(false)}>Dashboard</Link>
-                  <Link href="/admin/products" className="mobile-nav-link" onClick={() => setShowMobileMenu(false)}>Products</Link>
-                  <Link href="/admin/orders" className="mobile-nav-link" onClick={() => setShowMobileMenu(false)}>Orders</Link>
-                  <Link href="/admin/categories" className="mobile-nav-link" onClick={() => setShowMobileMenu(false)}>Categories</Link>
-                  <Link href="/admin/reports" className="mobile-nav-link" onClick={() => setShowMobileMenu(false)}>Reports</Link>
+                  {isAdmin && (
+                    <>
+                      <div style={{ height: '1px', background: '#f0f0f0', margin: '16px 0 8px' }}></div>
+                      <div style={{
+                        padding: '8px 20px 4px',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                        color: '#B38B59'
+                      }}>
+                        Administrator
+                      </div>
+                      <Link href="/admin" onClick={() => setShowMobileMenu(false)} style={{
+                        padding: '14px 20px',
+                        color: '#4A5568',
+                        textDecoration: 'none',
+                        fontSize: '16px',
+                        fontWeight: '500',
+                        borderRadius: '8px',
+                        transition: 'background 0.2s',
+                        display: 'block'
+                      }}>
+                        Dashboard
+                      </Link>
+                      <Link href="/admin/products" onClick={() => setShowMobileMenu(false)} style={{
+                        padding: '14px 20px',
+                        color: '#4A5568',
+                        textDecoration: 'none',
+                        fontSize: '16px',
+                        fontWeight: '500',
+                        borderRadius: '8px',
+                        transition: 'background 0.2s',
+                        display: 'block'
+                      }}>
+                        Products
+                      </Link>
+                      <Link href="/admin/orders" onClick={() => setShowMobileMenu(false)} style={{
+                        padding: '14px 20px',
+                        color: '#4A5568',
+                        textDecoration: 'none',
+                        fontSize: '16px',
+                        fontWeight: '500',
+                        borderRadius: '8px',
+                        transition: 'background 0.2s',
+                        display: 'block'
+                      }}>
+                        Orders
+                      </Link>
+                      <Link href="/admin/categories" onClick={() => setShowMobileMenu(false)} style={{
+                        padding: '14px 20px',
+                        color: '#4A5568',
+                        textDecoration: 'none',
+                        fontSize: '16px',
+                        fontWeight: '500',
+                        borderRadius: '8px',
+                        transition: 'background 0.2s',
+                        display: 'block'
+                      }}>
+                        Categories
+                      </Link>
+                      <Link href="/admin/reports" onClick={() => setShowMobileMenu(false)} style={{
+                        padding: '14px 20px',
+                        color: '#4A5568',
+                        textDecoration: 'none',
+                        fontSize: '16px',
+                        fontWeight: '500',
+                        borderRadius: '8px',
+                        transition: 'background 0.2s',
+                        display: 'block'
+                      }}>
+                        Reports
+                      </Link>
+                    </>
+                  )}
+                  <button 
+                    onClick={() => { setShowMobileMenu(false); handleLogout(); }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '12px',
+                      padding: '14px 20px',
+                      background: '#FEF2F2',
+                      border: '1px solid #FECACA',
+                      borderRadius: '10px',
+                      color: '#E74C3C',
+                      fontSize: '16px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      marginTop: '16px',
+                      width: '100%',
+                      fontFamily: 'inherit'
+                    }}
+                  >
+                    <LogOut size={20} />
+                    Sign Out
+                  </button>
                 </>
               )}
-              <button className="mobile-logout-button" onClick={() => { setShowMobileMenu(false); handleLogout(); }}>
-                <span>🚪</span> Sign Out
-              </button>
-            </>
-          )}
-        </div>
-      )}
+            </div>
+          </div>
+        )}
+      </header>
 
       <style jsx>{`
-        .header {
-          background: white;
-          border-bottom: 1px solid #EDF2F7;
-          position: sticky;
-          top: 0;
-          z-index: 1000;
-          box-shadow: 0 2px 10px rgba(0,0,0,0.02);
-        }
-        
-        .header-content {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          height: 80px;
-          max-width: 1400px;
-          margin: 0 auto;
-          padding: 0 32px;
-        }
-        
-        /* Logo */
-        .logo {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          text-decoration: none;
-        }
-        
-        .logo-icon {
-          background: linear-gradient(135deg, #3182CE, #1E4E8C);
-          color: white;
-          width: 44px;
-          height: 44px;
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 700;
-          font-size: 20px;
-          box-shadow: 0 4px 12px rgba(49, 130, 206, 0.3);
-        }
-        
-        .logo-text {
-          color: #1A2B3C;
-          font-weight: 700;
-          font-size: 20px;
-          background: linear-gradient(135deg, #3182CE, #1E4E8C);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-        
-        /* Desktop Navigation */
-        .nav-links {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-        
-        .nav-link {
-          color: #4A5568;
-          text-decoration: none;
-          font-size: 15px;
-          font-weight: 500;
-          padding: 8px 16px;
-          border-radius: 40px;
-          transition: all 0.2s;
-        }
-        
-        .nav-link:hover {
-          background: #F7FAFC;
-          color: #3182CE;
-        }
-        
-        .nav-link.active {
-          color: #3182CE;
-          background: #EBF8FF;
-          font-weight: 600;
-        }
-        
-        /* Right Icons */
-        .right-icons {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-        
-        .icon-button {
-          background: none;
-          border: none;
-          font-size: 20px;
-          padding: 10px;
-          border-radius: 50%;
-          cursor: pointer;
-          position: relative;
-          transition: all 0.2s;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #4A5568;
-          width: 44px;
-          height: 44px;
-        }
-        
-        .icon-button:hover {
-          background: #F7FAFC;
-          color: #3182CE;
-        }
-        
-        .cart-button {
-          background: #EBF8FF;
-          color: #3182CE;
-        }
-        
-        .cart-button:hover {
-          background: linear-gradient(135deg, #3182CE, #1E4E8C);
-          color: white;
-        }
-        
-        .icon-badge {
-          position: absolute;
-          top: 2px;
-          right: 2px;
-          background: #E53E3E;
-          color: white;
-          font-size: 11px;
-          font-weight: 600;
-          min-width: 20px;
-          height: 20px;
-          border-radius: 20px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 0 5px;
-          border: 2px solid white;
-        }
-        
-        /* User Menu */
-        .user-menu-wrapper {
-          position: relative;
-        }
-        
-        .user-button {
-          background: none;
-          border: none;
-          cursor: pointer;
-          padding: 0;
-        }
-        
-        .user-avatar {
-          width: 44px;
-          height: 44px;
-          background: linear-gradient(135deg, #3182CE, #1E4E8C);
-          color: white;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 600;
-          font-size: 18px;
-          transition: all 0.2s;
-          border: 2px solid transparent;
-        }
-        
-        .user-avatar:hover {
-          transform: scale(1.05);
-          border-color: white;
-          box-shadow: 0 4px 12px rgba(49, 130, 206, 0.3);
-        }
-        
-        .login-button {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 10px 20px;
-          background: white;
-          border: 1.5px solid #E2E8F0;
-          border-radius: 40px;
-          cursor: pointer;
-          transition: all 0.2s;
-          color: #1A2B3C;
-          font-weight: 500;
-          font-size: 14px;
-        }
-        
-        .login-button:hover {
-          background: #F7FAFC;
-          border-color: #3182CE;
-          color: #3182CE;
-        }
-        
-        .login-icon {
-          font-size: 18px;
-        }
-        
-        /* Dropdown Menu */
-        .menu-backdrop {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          z-index: 998;
-        }
-        
-        .user-dropdown {
-          position: absolute;
-          top: calc(100% + 12px);
-          right: -20px;
-          background: white;
-          border-radius: 16px;
-          box-shadow: 0 10px 40px rgba(0,0,0,0.08);
-          width: 260px;
-          z-index: 999;
-          overflow: hidden;
-          border: 1px solid #EDF2F7;
-          animation: slideDown 0.2s ease;
-        }
-        
         @keyframes slideDown {
-          from { opacity: 0; transform: translateY(-10px); }
-          to { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
-        
-        /* Dropdown Header */
-        .dropdown-header {
-          padding: 20px;
-          background: linear-gradient(135deg, #F0F9FF, #E6F2FF);
-          display: flex;
-          align-items: center;
-          gap: 16px;
-        }
-        
-        .dropdown-user-avatar {
-          width: 52px;
-          height: 52px;
-          background: linear-gradient(135deg, #3182CE, #1E4E8C);
-          color: white;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 600;
-          font-size: 20px;
-          border: 2px solid white;
-          box-shadow: 0 4px 12px rgba(49, 130, 206, 0.2);
-        }
-        
-        .dropdown-user-info {
-          flex: 1;
-        }
-        
-        .dropdown-user-name {
-          font-weight: 600;
-          color: #1A2B3C;
-          font-size: 15px;
-          margin-bottom: 4px;
-        }
-        
-        .dropdown-user-email {
-          font-size: 12px;
-          color: #64748B;
-          margin-bottom: 6px;
-          word-break: break-word;
-        }
-        
-        .dropdown-user-role {
-          display: inline-block;
-          padding: 4px 10px;
-          background: white;
-          border-radius: 20px;
-          font-size: 11px;
-          font-weight: 600;
-          color: #3182CE;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        }
-        
-        .dropdown-divider {
-          height: 1px;
-          background: #EDF2F7;
-          margin: 8px 0;
-        }
-        
-        .dropdown-item {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 12px 20px;
-          color: #1A2B3C;
-          text-decoration: none;
-          font-size: 14px;
-          transition: all 0.2s;
-          cursor: pointer;
-          border: none;
-          background: none;
-          width: 100%;
-          text-align: left;
-        }
-        
-        .dropdown-item:hover {
-          background: #F8FAFC;
-        }
-        
-        .item-icon {
-          font-size: 18px;
-          width: 20px;
-          text-align: center;
-        }
-        
-        .item-title {
-          font-weight: 500;
-        }
-        
-        /* ADMIN SECTION - Professional and clean */
-        .dropdown-admin-section {
-          padding: 4px 0;
-        }
-        
-        .dropdown-admin-header {
-          padding: 8px 20px 4px;
-          font-size: 12px;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          color: #3182CE;
-        }
-        
-        .dropdown-admin-links {
-          display: flex;
-          flex-direction: column;
-        }
-        
-        .dropdown-admin-link {
-          display: block;
-          padding: 10px 20px 10px 32px;
-          color: #4A5568;
-          text-decoration: none;
-          font-size: 14px;
-          font-weight: 400;
-          transition: all 0.2s;
-          border-left: 2px solid transparent;
-        }
-        
-        .dropdown-admin-link:hover {
-          background: #F8FAFC;
-          color: #3182CE;
-          border-left-color: #3182CE;
-        }
-        
-        .logout-button {
-          color: #E53E3E;
-        }
-        
-        .logout-button .item-title {
-          color: #E53E3E;
-        }
-        
-        .logout-button:hover {
-          background: #FEF2F2;
-        }
-        
-        /* Mobile Menu */
-        .mobile-menu-button {
-          display: none;
-          background: none;
-          border: none;
-          font-size: 24px;
-          cursor: pointer;
-          padding: 10px;
-          color: #4A5568;
-        }
-        
-        .mobile-nav {
-          display: none;
-          position: fixed;
-          top: 80px;
-          left: 0;
-          right: 0;
-          background: white;
-          padding: 24px;
-          border-top: 1px solid #EDF2F7;
-          box-shadow: 0 10px 20px rgba(0,0,0,0.02);
-          z-index: 997;
-          flex-direction: column;
-          gap: 4px;
-        }
-        
-        .mobile-nav-link {
-          padding: 14px 20px;
-          color: #4A5568;
-          text-decoration: none;
-          font-size: 16px;
-          font-weight: 500;
-          border-radius: 8px;
-          transition: all 0.2s;
-        }
-        
-        .mobile-nav-link:hover {
-          background: #F7FAFC;
-        }
-        
-        .mobile-nav-link.active {
-          color: #3182CE;
-          background: #EBF8FF;
-        }
-        
-        .mobile-login-button {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 14px 20px;
-          background: linear-gradient(135deg, #3182CE, #1E4E8C);
-          border: none;
-          border-radius: 8px;
-          color: white;
-          font-size: 16px;
-          font-weight: 600;
-          cursor: pointer;
-          margin-top: 16px;
-          width: 100%;
-        }
-        
-        .mobile-logout-button {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 14px 20px;
-          background: #FEF2F2;
-          border: 1px solid #FECACA;
-          border-radius: 8px;
-          color: #E53E3E;
-          font-size: 16px;
-          font-weight: 600;
-          cursor: pointer;
-          margin-top: 16px;
-          width: 100%;
-        }
-        
-        .mobile-divider {
-          height: 1px;
-          background: #EDF2F7;
-          margin: 16px 0 8px;
-        }
-        
-        .mobile-admin-label {
-          padding: 8px 20px 4px;
-          font-size: 12px;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          color: #3182CE;
-        }
-        
-        /* Responsive */
+
         @media (max-width: 1024px) {
-          .nav-links { display: none; }
-          .mobile-menu-button { display: block; }
-          .mobile-nav { display: flex; }
+          .desktop-nav {
+            display: none !important;
+          }
+          .mobile-menu-btn {
+            display: block !important;
+          }
         }
-        
-        @media (max-width: 640px) {
-          .header-content {
-            padding: 0 16px;
-            height: 70px;
+
+        @media (min-width: 1025px) {
+          .mobile-menu-btn {
+            display: none !important;
           }
-          
-          .logo-icon {
-            width: 40px;
-            height: 40px;
-            font-size: 18px;
-          }
-          
-          .logo-text {
-            font-size: 18px;
-          }
-          
-          .user-dropdown {
-            position: fixed;
-            top: auto;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            width: 100%;
-            border-radius: 24px 24px 0 0;
-            max-height: 90vh;
-            overflow-y: auto;
-            animation: slideUp 0.3s ease;
-          }
-          
-          @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
-          }
-          
-          .login-button .login-text { display: none; }
-          .login-button { padding: 10px; }
         }
       `}</style>
-    </header>
+    </>
   );
 }

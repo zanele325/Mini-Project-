@@ -11,6 +11,16 @@ import {
   sendPasswordResetEmail
 } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
+import { 
+  Mail, 
+  Lock, 
+  User, 
+  AlertCircle, 
+  CheckCircle,
+  ArrowRight,
+  Shield,
+  UserCircle
+} from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -51,11 +61,8 @@ export default function LoginPage() {
       };
       
       localStorage.setItem('guestSession', JSON.stringify(guestSession));
-      
-      // Set a flag in sessionStorage to indicate guest mode
       sessionStorage.setItem('isGuest', 'true');
       
-      // Redirect to homepage (page.js)
       router.push('/');
       
     } catch (error) {
@@ -108,7 +115,6 @@ export default function LoginPage() {
 
       setSuccess('Account created successfully! Redirecting...');
       
-      // Clear guest session if it exists
       localStorage.removeItem('guestSession');
       sessionStorage.removeItem('isGuest');
       
@@ -139,7 +145,6 @@ export default function LoginPage() {
       
       await signInWithEmailAndPassword(auth, email, password);
       
-      // Clear guest session on login
       localStorage.removeItem('guestSession');
       sessionStorage.removeItem('isGuest');
       
@@ -193,53 +198,147 @@ export default function LoginPage() {
     }
   };
 
-  // SIMPLIFIED: Direct guest button on the main login/signup page
   const renderLoginForm = () => (
-    <form onSubmit={handleEmailLogin} className="auth-form">
-      <div className="form-group">
-        <label htmlFor="email">Email Address</label>
+    <form onSubmit={handleEmailLogin} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <label style={{
+          fontSize: '14px',
+          fontWeight: '600',
+          color: '#1A1A1A',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <Mail size={16} color="#666" />
+          Email Address
+        </label>
         <input
           type="email"
-          id="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
           placeholder="your@email.com"
+          style={{
+            padding: '14px 16px',
+            border: '2px solid #e0e0e0',
+            borderRadius: '10px',
+            fontSize: '15px',
+            transition: 'all 0.2s',
+            fontFamily: 'inherit',
+            outline: 'none'
+          }}
+          onFocus={(e) => e.target.style.borderColor = '#B38B59'}
+          onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
         />
       </div>
       
-      <div className="form-group">
-        <label htmlFor="password">Password</label>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <label style={{
+          fontSize: '14px',
+          fontWeight: '600',
+          color: '#1A1A1A',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <Lock size={16} color="#666" />
+          Password
+        </label>
         <input
           type="password"
-          id="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
           placeholder="••••••••"
+          style={{
+            padding: '14px 16px',
+            border: '2px solid #e0e0e0',
+            borderRadius: '10px',
+            fontSize: '15px',
+            transition: 'all 0.2s',
+            fontFamily: 'inherit',
+            outline: 'none'
+          }}
+          onFocus={(e) => e.target.style.borderColor = '#B38B59'}
+          onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
         />
       </div>
       
       <button 
         type="submit" 
-        className="auth-button" 
         disabled={loading}
+        style={{
+          background: 'linear-gradient(135deg, #B38B59 0%, #8B6A3D 100%)',
+          color: 'white',
+          padding: '16px 24px',
+          border: 'none',
+          borderRadius: '10px',
+          fontSize: '16px',
+          fontWeight: '600',
+          cursor: loading ? 'not-allowed' : 'pointer',
+          transition: 'all 0.2s',
+          opacity: loading ? 0.7 : 1,
+          boxShadow: '0 4px 12px rgba(179, 139, 89, 0.3)',
+          fontFamily: 'inherit',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px'
+        }}
+        onMouseEnter={(e) => {
+          if (!loading) {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 6px 16px rgba(179, 139, 89, 0.4)';
+          }
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 4px 12px rgba(179, 139, 89, 0.3)';
+        }}
       >
         {loading ? 'Logging in...' : 'Login'}
+        {!loading && <ArrowRight size={18} />}
       </button>
       
-      <div className="auth-links">
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        marginTop: '8px'
+      }}>
         <button 
-          type="button" 
-          className="link-button"
+          type="button"
           onClick={() => setMode('forgot-password')}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#B38B59',
+            fontSize: '14px',
+            fontWeight: '500',
+            cursor: 'pointer',
+            padding: '4px 8px',
+            fontFamily: 'inherit'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+          onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
         >
           Forgot Password?
         </button>
         <button 
-          type="button" 
-          className="link-button"
+          type="button"
           onClick={() => setMode('signup')}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#B38B59',
+            fontSize: '14px',
+            fontWeight: '500',
+            cursor: 'pointer',
+            padding: '4px 8px',
+            fontFamily: 'inherit'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+          onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
         >
           Create Account
         </button>
@@ -248,72 +347,160 @@ export default function LoginPage() {
   );
 
   const renderSignUpForm = () => (
-    <form onSubmit={handleEmailSignUp} className="auth-form">
-      <div className="form-group">
-        <label htmlFor="signup-email">Email Address</label>
+    <form onSubmit={handleEmailSignUp} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <label style={{
+          fontSize: '14px',
+          fontWeight: '600',
+          color: '#1A1A1A',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <Mail size={16} color="#666" />
+          Email Address
+        </label>
         <input
           type="email"
-          id="signup-email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
           placeholder="your@email.com"
+          style={{
+            padding: '14px 16px',
+            border: '2px solid #e0e0e0',
+            borderRadius: '10px',
+            fontSize: '15px',
+            transition: 'all 0.2s',
+            fontFamily: 'inherit',
+            outline: 'none'
+          }}
+          onFocus={(e) => e.target.style.borderColor = '#B38B59'}
+          onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
         />
       </div>
       
-      <div className="form-group">
-        <label htmlFor="signup-password">Password</label>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <label style={{
+          fontSize: '14px',
+          fontWeight: '600',
+          color: '#1A1A1A',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <Lock size={16} color="#666" />
+          Password
+        </label>
         <input
           type="password"
-          id="signup-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
           placeholder="At least 6 characters"
+          style={{
+            padding: '14px 16px',
+            border: '2px solid #e0e0e0',
+            borderRadius: '10px',
+            fontSize: '15px',
+            transition: 'all 0.2s',
+            fontFamily: 'inherit',
+            outline: 'none'
+          }}
+          onFocus={(e) => e.target.style.borderColor = '#B38B59'}
+          onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
         />
-        <small>Password must be at least 6 characters</small>
+        <small style={{ fontSize: '12px', color: '#666' }}>Password must be at least 6 characters</small>
       </div>
       
-      <div className="form-group">
-        <label htmlFor="confirm-password">Confirm Password</label>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <label style={{
+          fontSize: '14px',
+          fontWeight: '600',
+          color: '#1A1A1A',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <Lock size={16} color="#666" />
+          Confirm Password
+        </label>
         <input
           type="password"
-          id="confirm-password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
           placeholder="••••••••"
+          style={{
+            padding: '14px 16px',
+            border: '2px solid #e0e0e0',
+            borderRadius: '10px',
+            fontSize: '15px',
+            transition: 'all 0.2s',
+            fontFamily: 'inherit',
+            outline: 'none'
+          }}
+          onFocus={(e) => e.target.style.borderColor = '#B38B59'}
+          onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
         />
       </div>
       
       {/* Role Selection */}
-      <div className="form-group">
-        <label>Account Type</label>
-        <div className="role-selector">
-          <label className="role-option">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <label style={{
+          fontSize: '14px',
+          fontWeight: '600',
+          color: '#1A1A1A'
+        }}>
+          Account Type
+        </label>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <label style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            padding: '14px 16px',
+            border: role === 'customer' ? '2px solid #B38B59' : '2px solid #e0e0e0',
+            borderRadius: '10px',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            background: role === 'customer' ? '#FFF9F0' : 'white'
+          }}>
             <input
               type="radio"
               name="role"
               value="customer"
               checked={role === 'customer'}
               onChange={(e) => setRole(e.target.value)}
+              style={{ marginRight: '12px', accentColor: '#B38B59' }}
             />
-            <span className="role-label">
-              <span className="role-icon">👤</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: '500' }}>
+              <UserCircle size={20} color={role === 'customer' ? '#B38B59' : '#666'} />
               Customer
             </span>
           </label>
           
-          <label className="role-option">
+          <label style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            padding: '14px 16px',
+            border: role === 'admin' ? '2px solid #B38B59' : '2px solid #e0e0e0',
+            borderRadius: '10px',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            background: role === 'admin' ? '#FFF9F0' : 'white'
+          }}>
             <input
               type="radio"
               name="role"
               value="admin"
               checked={role === 'admin'}
               onChange={(e) => setRole(e.target.value)}
+              style={{ marginRight: '12px', accentColor: '#B38B59' }}
             />
-            <span className="role-label">
-              <span className="role-icon">⚙️</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', fontWeight: '500' }}>
+              <Shield size={20} color={role === 'admin' ? '#B38B59' : '#666'} />
               Admin
             </span>
           </label>
@@ -322,33 +509,92 @@ export default function LoginPage() {
       
       {/* Admin Code Field */}
       {role === 'admin' && (
-        <div className="form-group">
-          <label htmlFor="admin-code">Admin Secret Code</label>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <label style={{
+            fontSize: '14px',
+            fontWeight: '600',
+            color: '#1A1A1A',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <Shield size={16} color="#666" />
+            Admin Secret Code
+          </label>
           <input
             type="password"
-            id="admin-code"
             value={adminCode}
             onChange={(e) => setAdminCode(e.target.value)}
             required
             placeholder="Enter admin code"
+            style={{
+              padding: '14px 16px',
+              border: '2px solid #e0e0e0',
+              borderRadius: '10px',
+              fontSize: '15px',
+              transition: 'all 0.2s',
+              fontFamily: 'inherit',
+              outline: 'none'
+            }}
+            onFocus={(e) => e.target.style.borderColor = '#B38B59'}
+            onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
           />
-          <small>Contact your administrator for the admin code</small>
+          <small style={{ fontSize: '12px', color: '#666' }}>Contact your administrator for the admin code</small>
         </div>
       )}
       
       <button 
         type="submit" 
-        className="auth-button" 
         disabled={loading}
+        style={{
+          background: 'linear-gradient(135deg, #B38B59 0%, #8B6A3D 100%)',
+          color: 'white',
+          padding: '16px 24px',
+          border: 'none',
+          borderRadius: '10px',
+          fontSize: '16px',
+          fontWeight: '600',
+          cursor: loading ? 'not-allowed' : 'pointer',
+          transition: 'all 0.2s',
+          opacity: loading ? 0.7 : 1,
+          boxShadow: '0 4px 12px rgba(179, 139, 89, 0.3)',
+          fontFamily: 'inherit',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px'
+        }}
+        onMouseEnter={(e) => {
+          if (!loading) {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 6px 16px rgba(179, 139, 89, 0.4)';
+          }
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 4px 12px rgba(179, 139, 89, 0.3)';
+        }}
       >
         {loading ? 'Creating Account...' : 'Sign Up'}
+        {!loading && <ArrowRight size={18} />}
       </button>
       
-      <div className="auth-links">
+      <div style={{ textAlign: 'center', marginTop: '8px' }}>
         <button 
-          type="button" 
-          className="link-button"
+          type="button"
           onClick={() => setMode('login')}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#B38B59',
+            fontSize: '14px',
+            fontWeight: '500',
+            cursor: 'pointer',
+            padding: '4px 8px',
+            fontFamily: 'inherit'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+          onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
         >
           Already have an account? Login
         </button>
@@ -357,33 +603,92 @@ export default function LoginPage() {
   );
 
   const renderForgotPasswordForm = () => (
-    <form onSubmit={handleForgotPassword} className="auth-form">
-      <div className="form-group">
-        <label htmlFor="reset-email">Email Address</label>
+    <form onSubmit={handleForgotPassword} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <label style={{
+          fontSize: '14px',
+          fontWeight: '600',
+          color: '#1A1A1A',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <Mail size={16} color="#666" />
+          Email Address
+        </label>
         <input
           type="email"
-          id="reset-email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
           placeholder="your@email.com"
+          style={{
+            padding: '14px 16px',
+            border: '2px solid #e0e0e0',
+            borderRadius: '10px',
+            fontSize: '15px',
+            transition: 'all 0.2s',
+            fontFamily: 'inherit',
+            outline: 'none'
+          }}
+          onFocus={(e) => e.target.style.borderColor = '#B38B59'}
+          onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
         />
-        <small>We'll send you a link to reset your password</small>
+        <small style={{ fontSize: '12px', color: '#666' }}>We'll send you a link to reset your password</small>
       </div>
       
       <button 
         type="submit" 
-        className="auth-button" 
         disabled={loading}
+        style={{
+          background: 'linear-gradient(135deg, #B38B59 0%, #8B6A3D 100%)',
+          color: 'white',
+          padding: '16px 24px',
+          border: 'none',
+          borderRadius: '10px',
+          fontSize: '16px',
+          fontWeight: '600',
+          cursor: loading ? 'not-allowed' : 'pointer',
+          transition: 'all 0.2s',
+          opacity: loading ? 0.7 : 1,
+          boxShadow: '0 4px 12px rgba(179, 139, 89, 0.3)',
+          fontFamily: 'inherit',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px'
+        }}
+        onMouseEnter={(e) => {
+          if (!loading) {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 6px 16px rgba(179, 139, 89, 0.4)';
+          }
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 4px 12px rgba(179, 139, 89, 0.3)';
+        }}
       >
         {loading ? 'Sending...' : 'Send Reset Link'}
+        {!loading && <ArrowRight size={18} />}
       </button>
       
-      <div className="auth-links">
+      <div style={{ textAlign: 'center', marginTop: '8px' }}>
         <button 
-          type="button" 
-          className="link-button"
+          type="button"
           onClick={() => setMode('login')}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#B38B59',
+            fontSize: '14px',
+            fontWeight: '500',
+            cursor: 'pointer',
+            padding: '4px 8px',
+            fontFamily: 'inherit'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+          onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
         >
           Back to Login
         </button>
@@ -392,434 +697,295 @@ export default function LoginPage() {
   );
 
   return (
-    <div className="auth-page">
-      <div className="auth-container">
-        {/* Header */}
-        <div className="auth-header">
-          <Link href="/" className="auth-logo">
-            <span className="logo-icon">iS</span>
-            <span className="logo-text">iSiko Studio</span>
-          </Link>
-          <h1 className="auth-title">
-            {mode === 'login' && 'Welcome Back'}
-            {mode === 'signup' && 'Create Account'}
-            {mode === 'forgot-password' && 'Reset Password'}
-          </h1>
-          <p className="auth-subtitle">
-            {mode === 'login' && 'Login to access your account, orders, and wishlist'}
-            {mode === 'signup' && 'Sign up to save your cart, track orders, and more'}
-            {mode === 'forgot-password' && 'Enter your email to reset your password'}
-          </p>
-        </div>
+    <>
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
         
-        {/* Error/Success Messages */}
-        {error && (
-          <div className="auth-error">
-            <span className="error-icon">⚠️</span>
-            {error}
-          </div>
-        )}
-        
-        {success && (
-          <div className="auth-success">
-            <span className="success-icon">✓</span>
-            {success}
-          </div>
-        )}
-        
-        {/* Auth Forms */}
-        <div className="auth-body">
-          {mode === 'login' && renderLoginForm()}
-          {mode === 'signup' && renderSignUpForm()}
-          {mode === 'forgot-password' && renderForgotPasswordForm()}
-          
-          {/* BIG PROMINENT GUEST BUTTON - Always visible on login and signup pages */}
-          {(mode === 'login' || mode === 'signup') && (
-            <>
-              <div className="divider">
-                <span>OR</span>
-              </div>
-              
-              <button 
-                onClick={handleGuestAccess}
-                className="guest-button-large"
-                disabled={loading}
-              >
-                <span className="guest-icon">👤</span>
-                <span className="guest-text">Continue as Guest</span>
-                <span className="guest-arrow">→</span>
-              </button>
-              
-              <p className="guest-info">
-                Shop immediately without an account. Your cart will be saved in your browser.
-                <Link href="/" className="guest-home-link"> Continue to homepage →</Link>
-              </p>
-            </>
-          )}
-        </div>
-        
-        {/* Footer */}
-        <div className="auth-footer">
-          <p>
-            By continuing, you agree to iSiko Studio's{' '}
-            <Link href="/terms">Terms of Service</Link> and{' '}
-            <Link href="/privacy">Privacy Policy</Link>.
-          </p>
-        </div>
-      </div>
-
-      <style jsx>{`
-        .auth-page {
-          min-height: calc(100vh - 70px);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-          padding: 40px 20px;
+        * {
+          box-sizing: border-box;
         }
         
-        .auth-container {
-          max-width: 520px;
-          width: 100%;
-          background: white;
-          border-radius: 24px;
-          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-          overflow: hidden;
-        }
-        
-        .auth-header {
-          background: linear-gradient(135deg, #2C3E50 0%, #1a2634 100%);
-          color: white;
-          padding: 40px 32px;
-          text-align: center;
-        }
-        
-        .auth-logo {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          margin-bottom: 24px;
-          text-decoration: none;
-        }
-        
-        .logo-icon {
-          background: #B38B59;
-          color: white;
-          width: 40px;
-          height: 40px;
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 700;
-          font-size: 18px;
-        }
-        
-        .logo-text {
-          color: white;
-          font-weight: 600;
-          font-size: 20px;
-        }
-        
-        .auth-title {
-          font-size: 28px;
-          font-weight: 700;
-          margin-bottom: 12px;
-        }
-        
-        .auth-subtitle {
-          color: rgba(255, 255, 255, 0.8);
-          font-size: 15px;
-          margin: 0;
-        }
-        
-        .auth-body {
-          padding: 32px;
-        }
-        
-        .auth-form {
-          display: flex;
-          flex-direction: column;
-          gap: 24px;
-        }
-        
-        .form-group {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-        
-        .form-group label {
-          font-size: 14px;
-          font-weight: 600;
-          color: #2C3E50;
-        }
-        
-        .form-group input {
-          padding: 12px 16px;
-          border: 1px solid #E5E7EB;
-          border-radius: 8px;
-          font-size: 15px;
-          transition: all 0.2s;
-        }
-        
-        .form-group input:focus {
-          outline: none;
-          border-color: #B38B59;
-          box-shadow: 0 0 0 3px rgba(179, 139, 89, 0.1);
-        }
-        
-        .form-group small {
-          font-size: 12px;
-          color: #666;
-        }
-        
-        .role-selector {
-          display: flex;
-          gap: 16px;
-          margin-top: 4px;
-        }
-        
-        .role-option {
-          flex: 1;
-          display: flex;
-          align-items: center;
-          padding: 12px;
-          border: 1px solid #E5E7EB;
-          border-radius: 8px;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-        
-        .role-option:hover {
-          background: #F8F9FA;
-        }
-        
-        .role-option input[type="radio"] {
-          width: 18px;
-          height: 18px;
-          margin-right: 12px;
-          accent-color: #B38B59;
-        }
-        
-        .role-label {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 14px;
-          color: #2C3E50;
-        }
-        
-        .role-icon {
-          font-size: 18px;
-        }
-        
-        .auth-button {
-          background: #B38B59;
-          color: white;
-          padding: 14px 24px;
-          border: none;
-          border-radius: 8px;
-          font-size: 16px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-        
-        .auth-button:hover:not(:disabled) {
-          background: #9a7647;
-        }
-        
-        .auth-button:disabled {
-          opacity: 0.7;
-          cursor: not-allowed;
-        }
-        
-        .auth-links {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-        
-        .link-button {
-          background: none;
-          border: none;
-          color: #B38B59;
-          font-size: 14px;
-          font-weight: 500;
-          cursor: pointer;
-          padding: 4px 8px;
-        }
-        
-        .link-button:hover {
-          text-decoration: underline;
-        }
-        
-        .divider {
-          position: relative;
-          text-align: center;
-          margin: 32px 0 24px;
-        }
-        
-        .divider::before {
-          content: '';
-          position: absolute;
-          top: 50%;
-          left: 0;
-          right: 0;
-          height: 1px;
-          background: #E5E7EB;
-        }
-        
-        .divider span {
-          position: relative;
-          background: white;
-          padding: 0 16px;
-          color: #666;
-          font-size: 14px;
-        }
-        
-        /* BIG PROMINENT GUEST BUTTON */
-        .guest-button-large {
-          width: 100%;
-          padding: 18px 24px;
-          background: white;
-          border: 2px solid #2C3E50;
-          border-radius: 12px;
-          color: #2C3E50;
-          font-size: 18px;
-          font-weight: 600;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 16px;
-          transition: all 0.3s;
-          margin-bottom: 16px;
-        }
-        
-        .guest-button-large:hover:not(:disabled) {
-          background: #2C3E50;
-          color: white;
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(44, 62, 80, 0.2);
-        }
-        
-        .guest-icon {
-          font-size: 24px;
-        }
-        
-        .guest-text {
-          flex: 0 1 auto;
-        }
-        
-        .guest-arrow {
-          font-size: 20px;
-          transition: transform 0.3s;
-        }
-        
-        .guest-button-large:hover .guest-arrow {
-          transform: translateX(8px);
-        }
-        
-        .guest-info {
-          margin-top: 16px;
-          text-align: center;
-          font-size: 13px;
-          color: #666;
-          background: #F8F9FA;
-          padding: 16px;
-          border-radius: 8px;
-          line-height: 1.6;
-        }
-        
-        .guest-home-link {
-          color: #B38B59;
-          text-decoration: none;
-          font-weight: 600;
-        }
-        
-        .guest-home-link:hover {
-          text-decoration: underline;
-        }
-        
-        .auth-error,
-        .auth-success {
-          margin: 0 32px 24px;
-          padding: 16px;
-          border-radius: 8px;
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          font-size: 14px;
-        }
-        
-        .auth-error {
-          background: #FEF2F2;
-          color: #E74C3C;
-          border: 1px solid #FECACA;
-        }
-        
-        .auth-success {
-          background: #F0FDF4;
-          color: #2E8B57;
-          border: 1px solid #BBF7D0;
-        }
-        
-        .error-icon,
-        .success-icon {
-          font-size: 18px;
-        }
-        
-        .auth-footer {
-          padding: 24px 32px;
-          background: #F8F9FA;
-          border-top: 1px solid #E5E7EB;
-          text-align: center;
-        }
-        
-        .auth-footer p {
-          margin: 0;
-          font-size: 12px;
-          color: #666;
-        }
-        
-        .auth-footer a {
-          color: #B38B59;
-          text-decoration: none;
-        }
-        
-        .auth-footer a:hover {
-          text-decoration: underline;
-        }
-        
-        @media (max-width: 640px) {
-          .auth-container {
-            border-radius: 16px;
-          }
-          
-          .auth-header {
-            padding: 32px 24px;
-          }
-          
-          .auth-title {
-            font-size: 24px;
-          }
-          
-          .auth-body {
-            padding: 24px;
-          }
-          
-          .role-selector {
-            flex-direction: column;
-          }
-          
-          .guest-button-large {
-            padding: 16px 20px;
-            font-size: 16px;
-          }
+        body {
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
       `}</style>
-    </div>
+      
+      <div style={{
+        minHeight: 'calc(100vh - 76px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #FAFAFA 0%, #F0F0F0 100%)',
+        padding: '40px 20px'
+      }}>
+        <div style={{
+          maxWidth: '520px',
+          width: '100%',
+          background: 'white',
+          borderRadius: '20px',
+          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.08)',
+          overflow: 'hidden',
+          border: '1px solid #f0f0f0'
+        }}>
+          {/* Header */}
+          <div style={{
+            background: 'linear-gradient(165deg, #1A1A1A 0%, #2D2D2D 100%)',
+            color: 'white',
+            padding: '40px 32px',
+            textAlign: 'center',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            {/* Decorative circle */}
+            <div style={{
+              position: 'absolute',
+              top: '-50px',
+              right: '-50px',
+              width: '200px',
+              height: '200px',
+              background: 'radial-gradient(circle, rgba(179, 139, 89, 0.15) 0%, transparent 70%)',
+              borderRadius: '50%'
+            }}></div>
+            
+            <Link href="/" style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '12px',
+              marginBottom: '24px',
+              textDecoration: 'none',
+              position: 'relative',
+              zIndex: 1
+            }}>
+              <div style={{
+                width: '44px',
+                height: '44px',
+                background: 'linear-gradient(135deg, #B38B59 0%, #8B6A3D 100%)',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontWeight: '700',
+                fontSize: '18px',
+                fontFamily: "'Crimson Pro', serif",
+                boxShadow: '0 4px 12px rgba(179, 139, 89, 0.3)'
+              }}>
+                iS
+              </div>
+              <div>
+                <div style={{ 
+                  fontSize: '20px', 
+                  fontWeight: '700', 
+                  color: 'white',
+                  fontFamily: "'Crimson Pro', serif",
+                  lineHeight: '1',
+                  textAlign: 'left'
+                }}>
+                  iSiko Studio
+                </div>
+                <div style={{ 
+                  fontSize: '11px', 
+                  color: '#B38B59',
+                  fontWeight: '500',
+                  letterSpacing: '0.5px',
+                  textAlign: 'left'
+                }}>
+                  CULTURAL HERITAGE
+                </div>
+              </div>
+            </Link>
+            
+            <h1 style={{
+              fontSize: '32px',
+              fontWeight: '700',
+              marginBottom: '12px',
+              fontFamily: "'Crimson Pro', serif",
+              position: 'relative',
+              zIndex: 1
+            }}>
+              {mode === 'login' && 'Welcome Back'}
+              {mode === 'signup' && 'Create Account'}
+              {mode === 'forgot-password' && 'Reset Password'}
+            </h1>
+            <p style={{
+              color: 'rgba(255, 255, 255, 0.85)',
+              fontSize: '15px',
+              margin: 0,
+              lineHeight: '1.5',
+              position: 'relative',
+              zIndex: 1
+            }}>
+              {mode === 'login' && 'Login to access your account, orders, and wishlist'}
+              {mode === 'signup' && 'Sign up to save your cart, track orders, and more'}
+              {mode === 'forgot-password' && 'Enter your email to reset your password'}
+            </p>
+          </div>
+          
+          {/* Error/Success Messages */}
+          {error && (
+            <div style={{
+              margin: '24px 32px 0',
+              padding: '16px',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              fontSize: '14px',
+              background: '#FEF2F2',
+              color: '#E74C3C',
+              border: '1px solid #FECACA'
+            }}>
+              <AlertCircle size={20} />
+              {error}
+            </div>
+          )}
+          
+          {success && (
+            <div style={{
+              margin: '24px 32px 0',
+              padding: '16px',
+              borderRadius: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              fontSize: '14px',
+              background: '#F0FDF4',
+              color: '#2E8B57',
+              border: '1px solid #BBF7D0'
+            }}>
+              <CheckCircle size={20} />
+              {success}
+            </div>
+          )}
+          
+          {/* Auth Forms */}
+          <div style={{ padding: '32px' }}>
+            {mode === 'login' && renderLoginForm()}
+            {mode === 'signup' && renderSignUpForm()}
+            {mode === 'forgot-password' && renderForgotPasswordForm()}
+            
+            {/* Guest Button - Always visible on login and signup */}
+            {(mode === 'login' || mode === 'signup') && (
+              <>
+                <div style={{
+                  position: 'relative',
+                  textAlign: 'center',
+                  margin: '32px 0 24px'
+                }}>
+                  <div style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: 0,
+                    right: 0,
+                    height: '1px',
+                    background: '#e0e0e0'
+                  }}></div>
+                  <span style={{
+                    position: 'relative',
+                    background: 'white',
+                    padding: '0 16px',
+                    color: '#666',
+                    fontSize: '14px',
+                    fontWeight: '500'
+                  }}>
+                    OR
+                  </span>
+                </div>
+                
+                <button 
+                  onClick={handleGuestAccess}
+                  disabled={loading}
+                  style={{
+                    width: '100%',
+                    padding: '16px 24px',
+                    background: 'white',
+                    border: '2px solid #1A1A1A',
+                    borderRadius: '10px',
+                    color: '#1A1A1A',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '12px',
+                    transition: 'all 0.3s',
+                    marginBottom: '16px',
+                    fontFamily: 'inherit',
+                    opacity: loading ? 0.7 : 1
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!loading) {
+                      e.currentTarget.style.background = '#1A1A1A';
+                      e.currentTarget.style.color = 'white';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 6px 20px rgba(26, 26, 26, 0.2)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'white';
+                    e.currentTarget.style.color = '#1A1A1A';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  <User size={20} />
+                  <span>Continue as Guest</span>
+                  <ArrowRight size={18} />
+                </button>
+                
+                <div style={{
+                  background: '#F8F8F8',
+                  padding: '16px',
+                  borderRadius: '10px',
+                  textAlign: 'center',
+                  fontSize: '13px',
+                  color: '#666',
+                  lineHeight: '1.6'
+                }}>
+                  Shop immediately without an account. Your cart will be saved in your browser.
+                  <Link href="/" style={{
+                    color: '#B38B59',
+                    textDecoration: 'none',
+                    fontWeight: '600',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    marginLeft: '4px'
+                  }}>
+                    Continue to homepage <ArrowRight size={14} />
+                  </Link>
+                </div>
+              </>
+            )}
+          </div>
+          
+          {/* Footer */}
+          <div style={{
+            padding: '24px 32px',
+            background: '#FAFAFA',
+            borderTop: '1px solid #f0f0f0',
+            textAlign: 'center'
+          }}>
+            <p style={{
+              margin: 0,
+              fontSize: '12px',
+              color: '#666',
+              lineHeight: '1.6'
+            }}>
+              By continuing, you agree to iSiko Studio's{' '}
+              <Link href="/terms" style={{ color: '#B38B59', textDecoration: 'none' }}>
+                Terms of Service
+              </Link>
+              {' '}and{' '}
+              <Link href="/privacy" style={{ color: '#B38B59', textDecoration: 'none' }}>
+                Privacy Policy
+              </Link>
+              .
+            </p>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }

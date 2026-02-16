@@ -6,6 +6,20 @@ import { useRouter } from "next/navigation";
 import { useAuth } from '@/src/Context/AuthContext';
 import { useCart } from '@/src/Context/CartContext';
 import { useWishlist } from '@/src/Context/WishlistContext';
+import {
+  Heart,
+  Share2,
+  ShoppingCart,
+  Trash2,
+  Eye,
+  Plus,
+  X,
+  Copy,
+  Check,
+  Lock,
+  AlertCircle,
+  ArrowRight
+} from "lucide-react";
 
 export default function WishlistPage() {
   const router = useRouter();
@@ -14,6 +28,7 @@ export default function WishlistPage() {
   const { wishlistItems, wishlistCount, loading, removeFromWishlist, clearWishlist } = useWishlist();
   
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Redirect guests to login
   useEffect(() => {
@@ -38,12 +53,14 @@ export default function WishlistPage() {
 
   // Get product image emoji
   const getProductEmoji = (product) => {
-    if (product.category === "Jewellery") return "💎";
-    if (product.category === "Clothing") return "👗";
-    if (product.category === "Headwear") return "👑";
-    if (product.category === "Accessories") return "👜";
-    if (product.category === "Footwear") return "👞";
-    return "🎁";
+    const emojiMap = {
+      'Jewellery': '💎',
+      'Clothing': '👗',
+      'Headwear': '👑',
+      'Accessories': '👜',
+      'Footwear': '👞'
+    };
+    return emojiMap[product.category] || '🎁';
   };
 
   // Get culture color
@@ -61,671 +78,154 @@ export default function WishlistPage() {
     return colors[culture] || '#F8F4E8';
   };
 
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(`https://isikostudio.com/wishlist/share/${user?.uid}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   // Loading state
   if (loading) {
     return (
-      <div className="wishlist-page">
-        <div className="container">
-          <div className="loading-state">
-            <div className="loading-spinner"></div>
-            <p>Loading your wishlist...</p>
+      <>
+        <style jsx global>{`
+          @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
+        `}</style>
+        
+        <div style={{
+          minHeight: 'calc(100vh - 76px)',
+          background: 'linear-gradient(135deg, #FAFAFA 0%, #F0F0F0 100%)',
+          padding: '40px 20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{
+              width: '60px',
+              height: '60px',
+              border: '4px solid #f3f3f3',
+              borderTop: '4px solid #B38B59',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+              margin: '0 auto 24px'
+            }}></div>
+            <p style={{ color: '#666', fontSize: '16px', fontWeight: '500' }}>Loading your wishlist...</p>
           </div>
         </div>
-      </div>
+        
+        <style jsx>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </>
     );
   }
 
   // Empty wishlist state
   if (wishlistItems.length === 0) {
     return (
-      <div className="wishlist-page">
-        <div className="container">
-          <div className="empty-wishlist">
-            <div className="empty-icon">♡</div>
-            <h1 className="empty-title">Your wishlist is empty</h1>
-            <p className="empty-text">
-              Save items you love by clicking the ♡ icon on any product.
-            </p>
-            <Link href="/shop" className="shop-now-btn">
-              Browse Products
-            </Link>
+      <>
+        <style jsx global>{`
+          @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
+          
+          @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+          }
+        `}</style>
+        
+        <div style={{
+          minHeight: 'calc(100vh - 76px)',
+          padding: '60px 20px',
+          background: 'linear-gradient(135deg, #FAFAFA 0%, #F0F0F0 100%)'
+        }}>
+          <div style={{ maxWidth: '600px', margin: '80px auto' }}>
+            <div style={{
+              background: 'white',
+              padding: '60px 40px',
+              borderRadius: '20px',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
+              textAlign: 'center',
+              border: '1px solid #f0f0f0'
+            }}>
+              <div style={{
+                width: '80px',
+                height: '80px',
+                background: 'linear-gradient(135deg, #FFE8E8 0%, #FFD6D6 100%)',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 24px',
+                animation: 'pulse 2s infinite'
+              }}>
+                <Heart size={40} color="#E74C3C" />
+              </div>
+              
+              <h1 style={{
+                fontSize: '32px',
+                fontWeight: '700',
+                color: '#1A1A1A',
+                marginBottom: '16px',
+                fontFamily: "'Crimson Pro', serif"
+              }}>
+                Your wishlist is empty
+              </h1>
+              
+              <p style={{
+                color: '#666',
+                marginBottom: '32px',
+                lineHeight: '1.6',
+                fontSize: '15px'
+              }}>
+                Save items you love by clicking the <Heart size={16} style={{ display: 'inline', verticalAlign: 'middle' }} /> icon on any product.
+              </p>
+              
+              <Link href="/shop" style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '16px 32px',
+                background: 'linear-gradient(135deg, #B38B59 0%, #8B6A3D 100%)',
+                color: 'white',
+                textDecoration: 'none',
+                borderRadius: '10px',
+                fontSize: '16px',
+                fontWeight: '600',
+                transition: 'all 0.2s',
+                boxShadow: '0 4px 12px rgba(179, 139, 89, 0.3)'
+              }}>
+                Browse Products
+                <ArrowRight size={18} />
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="wishlist-page">
-      <div className="container">
-        {/* Header */}
-        <div className="wishlist-header">
-          <div className="header-left">
-            <h1 className="wishlist-title">My Wishlist</h1>
-            <p className="wishlist-subtitle">
-              You have {wishlistCount} saved item{wishlistCount !== 1 ? 's' : ''}
-            </p>
-          </div>
-          
-          <div className="header-actions">
-            <button 
-              className="share-btn"
-              onClick={() => setShareModalOpen(true)}
-            >
-              <span className="btn-icon">🔗</span>
-              Share
-            </button>
-            <button 
-              className="add-all-btn"
-              onClick={handleAddAllToCart}
-              disabled={wishlistItems.length === 0}
-            >
-              <span className="btn-icon">🛒</span>
-              Add All to Cart
-            </button>
-            <button 
-              className="clear-btn"
-              onClick={() => {
-                if (confirm('Are you sure you want to clear your entire wishlist?')) {
-                  clearWishlist();
-                }
-              }}
-            >
-              <span className="btn-icon">🗑️</span>
-              Clear
-            </button>
-          </div>
-        </div>
-
-        {/* Wishlist Grid */}
-      
-<div className="wishlist-grid">
-  {wishlistItems.map((item, index) => (  // ✅ Add index parameter
-    <div 
-      key={`wishlist-${item.id}-${index}`}  // ✅ Add index to make key unique
-      className="wishlist-card"
-    >
-     
-  
-              {/* Product Image */}
-              <div className="card-image">
-                <div 
-                  className="image-placeholder"
-                  style={{ backgroundColor: getCultureColor(item.culture) }}
-                >
-                  <span className="product-emoji">{getProductEmoji(item)}</span>
-                </div>
-                
-                <div className="card-badges">
-                  <span className="culture-badge">{item.culture || 'Traditional'}</span>
-                  {item.inStock && (
-                    <span className="stock-badge">In Stock</span>
-                  )}
-                </div>
-
-                <button 
-                  className="remove-btn"
-                  onClick={() => removeFromWishlist(item.id)}
-                  title="Remove from wishlist"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="card-content">
-                <div className="occasion-tags">
-                  {item.occasions?.slice(0, 2).map((occasion, idx) => (
-                    <span key={idx} className="occasion-tag">{occasion}</span>
-                  ))}
-                  {item.occasions?.length > 2 && (
-                    <span className="occasion-tag">+{item.occasions.length - 2}</span>
-                  )}
-                </div>
-
-                <h3 className="product-name">
-                  <Link href={`/product/${item.id}`} className="product-link">
-                    {item.name || 'Traditional Item'}
-                  </Link>
-                </h3>
-
-                <p className="product-description">
-                  {item.description 
-                    ? `${item.description.substring(0, 60)}...`
-                    : 'Culturally significant traditional attire'}
-                </p>
-
-                <div className="card-footer">
-                  <div className="price-section">
-                    {item.salePrice ? (
-                      <>
-                        <span className="sale-price">R {item.salePrice.toFixed(2)}</span>
-                        <span className="original-price">R {item.price.toFixed(2)}</span>
-                      </>
-                    ) : (
-                      <span className="price">R {item.price?.toFixed(2) || '0.00'}</span>
-                    )}
-                  </div>
-
-                  <div className="action-buttons">
-                    <button 
-                      className="move-to-cart-btn"
-                      onClick={() => handleMoveToCart(item)}
-                      title="Move to cart"
-                    >
-                      🛒
-                    </button>
-                    <button 
-                      className="view-btn"
-                      onClick={() => router.push(`/product/${item.id}`)}
-                      title="View details"
-                    >
-                      👁️
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Share Modal - WITH REAL SOCIAL MEDIA LOGOS */}
-        {shareModalOpen && (
-          <div className="modal-overlay" onClick={() => setShareModalOpen(false)}>
-            <div className="share-modal" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header">
-                <h3>Share Your Wishlist</h3>
-                <button 
-                  className="close-modal-btn"
-                  onClick={() => setShareModalOpen(false)}
-                >
-                  ✕
-                </button>
-              </div>
-              
-              <div className="modal-body">
-                <p className="modal-text">
-                  Share your wishlist with friends and family:
-                </p>
-                
-                <div className="share-link-container">
-                  <input 
-                    type="text"
-                    className="share-link-input"
-                    value={`https://isikostudio.com/wishlist/share/${user?.uid}`}
-                    readOnly
-                  />
-                  <button 
-                    className="copy-link-btn"
-                    onClick={() => {
-                      navigator.clipboard.writeText(`https://isikostudio.com/wishlist/share/${user?.uid}`);
-                      alert('Link copied to clipboard!');
-                    }}
-                  >
-                    Copy
-                  </button>
-                </div>
-
-                <div className="share-options">
-                  <p className="share-options-title">Share via:</p>
-                  <div className="share-buttons">
-                    {/* WhatsApp */}
-                    <button className="share-option whatsapp">
-                      <svg className="share-icon" viewBox="0 0 24 24" width="20" height="20">
-                        <path fill="#25D366" d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.004.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.087.274.072.374-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087.159.058 1.011.477 1.184.564.173.087.289.13.332.202.043.072.043.419-.101.824z"/>
-                      </svg>
-                      WhatsApp
-                    </button>
-                    
-                    {/* Email */}
-                    <button className="share-option email">
-                      <svg className="share-icon" viewBox="0 0 24 24" width="20" height="20">
-                        <path fill="#EA4335" d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
-                      </svg>
-                      Email
-                    </button>
-                    
-                    {/* Facebook */}
-                    <button className="share-option facebook">
-                      <svg className="share-icon" viewBox="0 0 24 24" width="20" height="20">
-                        <path fill="#1877F2" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                      </svg>
-                      Facebook
-                    </button>
-                    
-                    {/* Twitter/X */}
-                    <button className="share-option twitter">
-                      <svg className="share-icon" viewBox="0 0 24 24" width="20" height="20">
-                        <path fill="#000000" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                      </svg>
-                      Twitter
-                    </button>
-                    
-                    {/* Pinterest */}
-                    <button className="share-option pinterest">
-                      <svg className="share-icon" viewBox="0 0 24 24" width="20" height="20">
-                        <path fill="#E60023" d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.175.271-.406.163-1.528-.703-2.48-2.911-2.48-4.681 0-3.813 2.748-7.312 7.921-7.312 4.157 0 7.392 2.967 7.392 6.924 0 4.128-2.598 7.452-6.211 7.452-1.213 0-2.354-.629-2.745-1.373l-.749 2.854c-.271 1.041-1.008 2.345-1.5 3.142 1.135.353 2.322.542 3.55.542 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z"/>
-                      </svg>
-                      Pinterest
-                    </button>
-                    
-                    {/* LinkedIn */}
-                    <button className="share-option linkedin">
-                      <svg className="share-icon" viewBox="0 0 24 24" width="20" height="20">
-                        <path fill="#0A66C2" d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                      </svg>
-                      LinkedIn
-                    </button>
-                  </div>
-                </div>
-
-                <p className="modal-note">
-                  <span className="note-icon">🔒</span>
-                  Only you can edit your wishlist. Shared links are view-only.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <style jsx>{`
-        .wishlist-page {
-          background: #F8FAFC;
-          min-height: 100vh;
-          padding: 40px 20px 80px;
+    <>
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
+        
+        * {
+          box-sizing: border-box;
         }
-
-        .container {
-          max-width: 1400px;
-          margin: 0 auto;
+        
+        body {
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
-
-        .loading-state {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          min-height: 60vh;
-        }
-
-        .loading-spinner {
-          width: 48px;
-          height: 48px;
-          border: 3px solid #E2E8F0;
-          border-top-color: #3182CE;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-          margin-bottom: 20px;
-        }
-
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-
-        .empty-wishlist {
-          max-width: 500px;
-          margin: 80px auto;
-          text-align: center;
-          background: white;
-          padding: 60px 40px;
-          border-radius: 24px;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.02);
-        }
-
-        .empty-icon {
-          font-size: 64px;
-          color: #FC8181;
-          margin-bottom: 24px;
-          animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.1); }
-        }
-
-        .empty-title {
-          font-size: 28px;
-          font-weight: 700;
-          color: #1A2B3C;
-          margin-bottom: 16px;
-        }
-
-        .empty-text {
-          color: #64748B;
-          margin-bottom: 32px;
-          line-height: 1.6;
-        }
-
-        .shop-now-btn {
-          display: inline-block;
-          padding: 16px 32px;
-          background: #3182CE;
-          color: white;
-          text-decoration: none;
-          border-radius: 40px;
-          font-weight: 600;
-          transition: all 0.2s;
-        }
-
-        .shop-now-btn:hover {
-          background: #1E4E8C;
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(49, 130, 206, 0.2);
-        }
-
-        .wishlist-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-end;
-          margin-bottom: 40px;
-          padding-bottom: 20px;
-          border-bottom: 1px solid #E2E8F0;
-        }
-
-        .wishlist-title {
-          font-size: 32px;
-          font-weight: 700;
-          color: #1A2B3C;
-          margin-bottom: 8px;
-        }
-
-        .wishlist-subtitle {
-          color: #64748B;
-          font-size: 16px;
-        }
-
-        .header-actions {
-          display: flex;
-          gap: 12px;
-        }
-
-        .share-btn,
-        .add-all-btn,
-        .clear-btn {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 12px 20px;
-          border-radius: 12px;
-          font-size: 14px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.2s;
-          border: 1px solid #E2E8F0;
-          background: white;
-          color: #4A5568;
-        }
-
-        .share-btn:hover {
-          background: #EBF8FF;
-          border-color: #3182CE;
-          color: #3182CE;
-        }
-
-        .add-all-btn {
-          background: #3182CE;
-          color: white;
-          border: none;
-        }
-
-        .add-all-btn:hover:not(:disabled) {
-          background: #1E4E8C;
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(49, 130, 206, 0.2);
-        }
-
-        .add-all-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .clear-btn:hover {
-          background: #FEF2F2;
-          border-color: #FC8181;
-          color: #E53E3E;
-        }
-
-        .btn-icon {
-          font-size: 16px;
-        }
-
-        .wishlist-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-          gap: 32px;
-        }
-
-        .wishlist-card {
-          background: white;
-          border-radius: 20px;
-          overflow: hidden;
-          box-shadow: 0 4px 16px rgba(0,0,0,0.02);
-          transition: all 0.3s;
-          position: relative;
-        }
-
-        .wishlist-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 12px 32px rgba(0,0,0,0.06);
-        }
-
-        .card-image {
-          position: relative;
-          width: 100%;
-          height: 240px;
-          overflow: hidden;
-        }
-
-        .image-placeholder {
-          width: 100%;
-          height: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: transform 0.3s;
-        }
-
-        .wishlist-card:hover .image-placeholder {
-          transform: scale(1.05);
-        }
-
-        .product-emoji {
-          font-size: 64px;
-        }
-
-        .card-badges {
-          position: absolute;
-          top: 16px;
-          left: 16px;
-          display: flex;
-          gap: 8px;
-        }
-
-        .culture-badge {
-          background: rgba(49, 130, 206, 0.9);
-          color: white;
-          padding: 6px 12px;
-          border-radius: 20px;
-          font-size: 12px;
-          font-weight: 600;
-          backdrop-filter: blur(4px);
-        }
-
-        .stock-badge {
-          background: rgba(46, 125, 50, 0.9);
-          color: white;
-          padding: 6px 12px;
-          border-radius: 20px;
-          font-size: 12px;
-          font-weight: 600;
-          backdrop-filter: blur(4px);
-        }
-
-        .remove-btn {
-          position: absolute;
-          top: 16px;
-          right: 16px;
-          width: 36px;
-          height: 36px;
-          background: white;
-          border: none;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 18px;
-          color: #94A3B8;
-          cursor: pointer;
-          transition: all 0.2s;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
-        .remove-btn:hover {
-          background: #FEF2F2;
-          color: #E53E3E;
-          transform: scale(1.1);
-        }
-
-        .card-content {
-          padding: 24px;
-        }
-
-        .occasion-tags {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-          margin-bottom: 16px;
-        }
-
-        .occasion-tag {
-          background: #F1F5F9;
-          color: #475569;
-          padding: 4px 12px;
-          border-radius: 20px;
-          font-size: 12px;
-          font-weight: 500;
-        }
-
-        .product-name {
-          margin-bottom: 12px;
-          font-size: 18px;
-          font-weight: 600;
-          line-height: 1.4;
-        }
-
-        .product-link {
-          color: #1A2B3C;
-          text-decoration: none;
-          transition: color 0.2s;
-        }
-
-        .product-link:hover {
-          color: #3182CE;
-        }
-
-        .product-description {
-          color: #64748B;
-          font-size: 14px;
-          line-height: 1.6;
-          margin-bottom: 20px;
-        }
-
-        .card-footer {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding-top: 16px;
-          border-top: 1px solid #EDF2F7;
-        }
-
-        .price-section {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .price {
-          font-size: 20px;
-          font-weight: 700;
-          color: #1A2B3C;
-        }
-
-        .sale-price {
-          font-size: 20px;
-          font-weight: 700;
-          color: #E53E3E;
-        }
-
-        .original-price {
-          font-size: 14px;
-          color: #94A3B8;
-          text-decoration: line-through;
-        }
-
-        .action-buttons {
-          display: flex;
-          gap: 8px;
-        }
-
-        .move-to-cart-btn,
-        .view-btn {
-          width: 44px;
-          height: 44px;
-          border: 1px solid #E2E8F0;
-          background: white;
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 20px;
-          color: #4A5568;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .move-to-cart-btn:hover {
-          background: #EBF8FF;
-          border-color: #3182CE;
-          color: #3182CE;
-        }
-
-        .view-btn:hover {
-          background: #F1F5F9;
-          border-color: #64748B;
-          color: #1A2B3C;
-        }
-
-        /* Modal Styles */
-        .modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0,0,0,0.5);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 1000;
-          animation: fadeIn 0.2s ease;
-        }
-
+        
         @keyframes fadeIn {
           from { opacity: 0; }
           to { opacity: 1; }
         }
-
-        .share-modal {
-          background: white;
-          border-radius: 24px;
-          width: 90%;
-          max-width: 520px;
-          max-height: 90vh;
-          overflow-y: auto;
-          animation: slideUp 0.3s ease;
-        }
-
+        
         @keyframes slideUp {
           from {
             opacity: 0;
@@ -736,247 +236,601 @@ export default function WishlistPage() {
             transform: translateY(0);
           }
         }
+      `}</style>
+      
+      <div style={{
+        background: 'linear-gradient(135deg, #FAFAFA 0%, #F0F0F0 100%)',
+        minHeight: 'calc(100vh - 76px)',
+        padding: '40px 20px 80px'
+      }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+          {/* Header */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-end',
+            marginBottom: '40px',
+            paddingBottom: '24px',
+            borderBottom: '2px solid #f0f0f0',
+            flexWrap: 'wrap',
+            gap: '20px'
+          }}>
+            <div>
+              <h1 style={{
+                fontSize: '36px',
+                fontWeight: '700',
+                color: '#1A1A1A',
+                marginBottom: '8px',
+                fontFamily: "'Crimson Pro', serif"
+              }}>
+                My Wishlist
+              </h1>
+              <p style={{ color: '#666', fontSize: '16px', margin: 0 }}>
+                You have {wishlistCount} saved item{wishlistCount !== 1 ? 's' : ''}
+              </p>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => setShareModalOpen(true)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '12px 20px',
+                  borderRadius: '10px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  border: '2px solid #e0e0e0',
+                  background: 'white',
+                  color: '#666',
+                  fontFamily: 'inherit'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = '#B38B59';
+                  e.currentTarget.style.color = '#B38B59';
+                  e.currentTarget.style.background = '#FFF9F0';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = '#e0e0e0';
+                  e.currentTarget.style.color = '#666';
+                  e.currentTarget.style.background = 'white';
+                }}
+              >
+                <Share2 size={16} />
+                Share
+              </button>
+              
+              <button
+                onClick={handleAddAllToCart}
+                disabled={wishlistItems.length === 0}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '12px 20px',
+                  borderRadius: '10px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: wishlistItems.length === 0 ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s',
+                  background: 'linear-gradient(135deg, #B38B59 0%, #8B6A3D 100%)',
+                  color: 'white',
+                  border: 'none',
+                  boxShadow: '0 4px 12px rgba(179, 139, 89, 0.3)',
+                  fontFamily: 'inherit',
+                  opacity: wishlistItems.length === 0 ? 0.5 : 1
+                }}
+                onMouseEnter={(e) => {
+                  if (wishlistItems.length > 0) {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(179, 139, 89, 0.4)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(179, 139, 89, 0.3)';
+                }}
+              >
+                <ShoppingCart size={16} />
+                Add All to Cart
+              </button>
+              
+              <button
+                onClick={() => {
+                  if (confirm('Are you sure you want to clear your entire wishlist?')) {
+                    clearWishlist();
+                  }
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '12px 20px',
+                  borderRadius: '10px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  border: '2px solid #e0e0e0',
+                  background: 'white',
+                  color: '#666',
+                  fontFamily: 'inherit'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#FEF2F2';
+                  e.currentTarget.style.borderColor = '#FECACA';
+                  e.currentTarget.style.color = '#E74C3C';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'white';
+                  e.currentTarget.style.borderColor = '#e0e0e0';
+                  e.currentTarget.style.color = '#666';
+                }}
+              >
+                <Trash2 size={16} />
+                Clear
+              </button>
+            </div>
+          </div>
 
-        .modal-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 24px 28px;
-          border-bottom: 1px solid #EDF2F7;
-        }
+          {/* Wishlist Grid */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+            gap: '32px'
+          }}>
+            {wishlistItems.map((item, index) => (
+              <div 
+                key={`wishlist-${item.id}-${index}`}
+                style={{
+                  background: 'white',
+                  borderRadius: '20px',
+                  overflow: 'hidden',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
+                  transition: 'all 0.3s',
+                  position: 'relative',
+                  border: '1px solid #f0f0f0'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.08)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.04)';
+                }}
+              >
+                {/* Product Image */}
+                <div style={{ position: 'relative', width: '100%', height: '240px', overflow: 'hidden' }}>
+                  <div style={{
+                    width: '100%',
+                    height: '100%',
+                    backgroundColor: getCultureColor(item.culture),
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '64px',
+                    transition: 'transform 0.3s'
+                  }}>
+                    {getProductEmoji(item)}
+                  </div>
+                  
+                  {/* Badges */}
+                  <div style={{
+                    position: 'absolute',
+                    top: '16px',
+                    left: '16px',
+                    display: 'flex',
+                    gap: '8px'
+                  }}>
+                    <span style={{
+                      background: 'rgba(179, 139, 89, 0.95)',
+                      color: 'white',
+                      padding: '6px 12px',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      backdropFilter: 'blur(4px)'
+                    }}>
+                      {item.culture || 'Traditional'}
+                    </span>
+                    {item.inStock && (
+                      <span style={{
+                        background: 'rgba(46, 139, 87, 0.95)',
+                        color: 'white',
+                        padding: '6px 12px',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        backdropFilter: 'blur(4px)'
+                      }}>
+                        In Stock
+                      </span>
+                    )}
+                  </div>
 
-        .modal-header h3 {
-          font-size: 20px;
-          font-weight: 700;
-          color: #1A2B3C;
-          margin: 0;
-        }
+                  {/* Remove Button */}
+                  <button
+                    onClick={() => removeFromWishlist(item.id)}
+                    title="Remove from wishlist"
+                    style={{
+                      position: 'absolute',
+                      top: '16px',
+                      right: '16px',
+                      width: '36px',
+                      height: '36px',
+                      background: 'white',
+                      border: 'none',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#FEF2F2';
+                      e.currentTarget.style.transform = 'scale(1.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'white';
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                  >
+                    <X size={18} color="#E74C3C" />
+                  </button>
+                </div>
 
-        .close-modal-btn {
-          background: none;
-          border: none;
-          font-size: 20px;
-          color: #94A3B8;
-          cursor: pointer;
-          padding: 8px;
-          border-radius: 50%;
-          transition: all 0.2s;
-        }
+                {/* Card Content */}
+                <div style={{ padding: '24px' }}>
+                  {/* Occasion Tags */}
+                  <div style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '8px',
+                    marginBottom: '16px'
+                  }}>
+                    {item.occasions?.slice(0, 2).map((occasion, idx) => (
+                      <span key={idx} style={{
+                        background: '#F5F5F5',
+                        color: '#666',
+                        padding: '4px 12px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        fontWeight: '500'
+                      }}>
+                        {occasion}
+                      </span>
+                    ))}
+                    {item.occasions?.length > 2 && (
+                      <span style={{
+                        background: '#F5F5F5',
+                        color: '#666',
+                        padding: '4px 12px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        fontWeight: '500'
+                      }}>
+                        +{item.occasions.length - 2}
+                      </span>
+                    )}
+                  </div>
 
-        .close-modal-btn:hover {
-          background: #F1F5F9;
-          color: #1A2B3C;
-        }
+                  {/* Product Name */}
+                  <h3 style={{
+                    marginBottom: '12px',
+                    fontSize: '18px',
+                    fontWeight: '600',
+                    lineHeight: '1.4'
+                  }}>
+                    <Link href={`/product/${item.id}`} style={{
+                      color: '#1A1A1A',
+                      textDecoration: 'none',
+                      transition: 'color 0.2s'
+                    }}>
+                      {item.name || 'Traditional Item'}
+                    </Link>
+                  </h3>
 
-        .modal-body {
-          padding: 28px;
-        }
+                  {/* Description */}
+                  <p style={{
+                    color: '#666',
+                    fontSize: '14px',
+                    lineHeight: '1.6',
+                    marginBottom: '20px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical'
+                  }}>
+                    {item.description 
+                      ? item.description
+                      : 'Culturally significant traditional attire'}
+                  </p>
 
-        .modal-text {
-          color: #1A2B3C;
-          margin-bottom: 20px;
-          font-size: 15px;
-        }
+                  {/* Footer */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    paddingTop: '16px',
+                    borderTop: '1px solid #f0f0f0'
+                  }}>
+                    {/* Price */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {item.salePrice ? (
+                        <>
+                          <span style={{
+                            fontSize: '20px',
+                            fontWeight: '700',
+                            color: '#E74C3C'
+                          }}>
+                            R {item.salePrice.toFixed(2)}
+                          </span>
+                          <span style={{
+                            fontSize: '14px',
+                            color: '#999',
+                            textDecoration: 'line-through'
+                          }}>
+                            R {item.price.toFixed(2)}
+                          </span>
+                        </>
+                      ) : (
+                        <span style={{
+                          fontSize: '20px',
+                          fontWeight: '700',
+                          color: '#1A1A1A'
+                        }}>
+                          R {item.price?.toFixed(2) || '0.00'}
+                        </span>
+                      )}
+                    </div>
 
-        .share-link-container {
-          display: flex;
-          gap: 12px;
-          margin-bottom: 28px;
-        }
+                    {/* Action Buttons */}
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        onClick={() => handleMoveToCart(item)}
+                        title="Move to cart"
+                        style={{
+                          width: '44px',
+                          height: '44px',
+                          border: '2px solid #e0e0e0',
+                          background: 'white',
+                          borderRadius: '10px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = '#FFF9F0';
+                          e.currentTarget.style.borderColor = '#B38B59';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'white';
+                          e.currentTarget.style.borderColor = '#e0e0e0';
+                        }}
+                      >
+                        <ShoppingCart size={18} color="#B38B59" />
+                      </button>
+                      
+                      <button
+                        onClick={() => router.push(`/product/${item.id}`)}
+                        title="View details"
+                        style={{
+                          width: '44px',
+                          height: '44px',
+                          border: '2px solid #e0e0e0',
+                          background: 'white',
+                          borderRadius: '10px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = '#F8F8F8';
+                          e.currentTarget.style.borderColor = '#666';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'white';
+                          e.currentTarget.style.borderColor = '#e0e0e0';
+                        }}
+                      >
+                        <Eye size={18} color="#666" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
 
-        .share-link-input {
-          flex: 1;
-          padding: 14px 16px;
-          border: 1px solid #E2E8F0;
-          border-radius: 12px;
-          font-size: 14px;
-          color: #1A2B3C;
-          background: #F8FAFC;
-        }
+          {/* Share Modal */}
+          {shareModalOpen && (
+            <div 
+              onClick={() => setShareModalOpen(false)}
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'rgba(0,0,0,0.5)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1000,
+                animation: 'fadeIn 0.2s ease',
+                padding: '20px'
+              }}
+            >
+              <div 
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  background: 'white',
+                  borderRadius: '20px',
+                  width: '100%',
+                  maxWidth: '520px',
+                  maxHeight: '90vh',
+                  overflowY: 'auto',
+                  animation: 'slideUp 0.3s ease'
+                }}
+              >
+                {/* Modal Header */}
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '24px 28px',
+                  borderBottom: '1px solid #f0f0f0'
+                }}>
+                  <h3 style={{
+                    fontSize: '22px',
+                    fontWeight: '700',
+                    color: '#1A1A1A',
+                    margin: 0,
+                    fontFamily: "'Crimson Pro', serif"
+                  }}>
+                    Share Your Wishlist
+                  </h3>
+                  <button
+                    onClick={() => setShareModalOpen(false)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '8px',
+                      borderRadius: '50%',
+                      transition: 'all 0.2s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#F5F5F5'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+                  >
+                    <X size={20} color="#999" />
+                  </button>
+                </div>
 
-        .copy-link-btn {
-          padding: 14px 24px;
-          background: #3182CE;
-          color: white;
-          border: none;
-          border-radius: 12px;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
+                {/* Modal Body */}
+                <div style={{ padding: '28px' }}>
+                  <p style={{
+                    color: '#1A1A1A',
+                    marginBottom: '20px',
+                    fontSize: '15px'
+                  }}>
+                    Share your wishlist with friends and family:
+                  </p>
 
-        .copy-link-btn:hover {
-          background: #1E4E8C;
-        }
+                  {/* Share Link */}
+                  <div style={{
+                    display: 'flex',
+                    gap: '12px',
+                    marginBottom: '28px'
+                  }}>
+                    <input
+                      type="text"
+                      value={`https://isikostudio.com/wishlist/share/${user?.uid}`}
+                      readOnly
+                      style={{
+                        flex: 1,
+                        padding: '14px 16px',
+                        border: '2px solid #e0e0e0',
+                        borderRadius: '10px',
+                        fontSize: '14px',
+                        color: '#1A1A1A',
+                        background: '#F8F8F8',
+                        fontFamily: 'inherit',
+                        outline: 'none'
+                      }}
+                    />
+                    <button
+                      onClick={handleCopyLink}
+                      style={{
+                        padding: '14px 24px',
+                        background: copied ? 'linear-gradient(135deg, #2E8B57 0%, #228B4A 100%)' : 'linear-gradient(135deg, #B38B59 0%, #8B6A3D 100%)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '10px',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        fontFamily: 'inherit',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        boxShadow: copied ? '0 4px 12px rgba(46, 139, 87, 0.3)' : '0 4px 12px rgba(179, 139, 89, 0.3)'
+                      }}
+                    >
+                      {copied ? (
+                        <>
+                          <Check size={16} />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={16} />
+                          Copy
+                        </>
+                      )}
+                    </button>
+                  </div>
 
-        .share-options {
-          margin-bottom: 28px;
-        }
+                  {/* Privacy Notice */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '12px',
+                    padding: '16px',
+                    background: '#FFF9F0',
+                    borderRadius: '12px',
+                    border: '1px solid #F0E6D6'
+                  }}>
+                    <Lock size={20} color="#B38B59" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <div>
+                      <div style={{
+                        fontWeight: '600',
+                        color: '#8B6A3D',
+                        marginBottom: '4px',
+                        fontSize: '14px'
+                      }}>
+                        Privacy Protected
+                      </div>
+                      <div style={{
+                        fontSize: '13px',
+                        color: '#8B6A3D',
+                        lineHeight: '1.6'
+                      }}>
+                        Only you can edit your wishlist. Shared links are view-only.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
-        .share-options-title {
-          font-size: 15px;
-          font-weight: 600;
-          color: #1A2B3C;
-          margin-bottom: 16px;
-        }
-
-        .share-buttons {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 12px;
-        }
-
-        .share-option {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          padding: 16px 12px;
-          border: 1px solid #E2E8F0;
-          border-radius: 12px;
-          background: white;
-          cursor: pointer;
-          transition: all 0.2s;
-          font-size: 13px;
-          font-weight: 500;
-          color: #1A2B3C;
-        }
-
-        .share-option:hover {
-          background: #F8FAFC;
-          border-color: #CBD5E0;
-          transform: translateY(-2px);
-        }
-
-        .share-option.whatsapp:hover {
-          border-color: #25D366;
-          color: #25D366;
-        }
-
-        .share-option.email:hover {
-          border-color: #EA4335;
-          color: #EA4335;
-        }
-
-        .share-option.facebook:hover {
-          border-color: #1877F2;
-          color: #1877F2;
-        }
-
-        .share-option.twitter:hover {
-          border-color: #000000;
-          color: #000000;
-        }
-
-        .share-option.pinterest:hover {
-          border-color: #E60023;
-          color: #E60023;
-        }
-
-        .share-option.linkedin:hover {
-          border-color: #0A66C2;
-          color: #0A66C2;
-        }
-
-        .share-icon {
-          width: 24px;
-          height: 24px;
-        }
-
-        .modal-note {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 16px;
-          background: #F8FAFC;
-          border-radius: 12px;
-          color: #64748B;
-          font-size: 13px;
-          margin: 0;
-        }
-
-        .note-icon {
-          font-size: 16px;
-        }
-
+      <style jsx>{`
         @media (max-width: 1024px) {
-          .wishlist-grid {
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-          }
+          /* Responsive adjustments handled inline */
         }
 
         @media (max-width: 768px) {
-          .wishlist-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 20px;
-          }
-
-          .header-actions {
-            width: 100%;
-            flex-wrap: wrap;
-          }
-
-          .share-btn,
-          .add-all-btn,
-          .clear-btn {
-            flex: 1;
-            justify-content: center;
-          }
-
-          .wishlist-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .share-buttons {
-            grid-template-columns: repeat(2, 1fr);
-          }
-
-          .share-link-container {
-            flex-direction: column;
-          }
-
-          .copy-link-btn {
-            width: 100%;
-          }
-
-          .card-footer {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 16px;
-          }
-
-          .action-buttons {
-            width: 100%;
-          }
-
-          .move-to-cart-btn,
-          .view-btn {
-            flex: 1;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .wishlist-title {
-            font-size: 28px;
-          }
-
-          .header-actions {
-            flex-direction: column;
-          }
-
-          .share-buttons {
-            grid-template-columns: 1fr;
-          }
-
-          .share-option {
-            flex-direction: row;
-            justify-content: flex-start;
-          }
+          /* Mobile-specific styles */
         }
       `}</style>
-    </div>
+    </>
   );
 }

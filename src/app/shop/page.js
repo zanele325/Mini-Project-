@@ -131,7 +131,7 @@ export default function ShopPage() {
         occasions: product.occasions || [],
         description: product.description || '',
         inStock: product.inStock !== false,
-        image: product.image || null,
+        image: product.imageUrl || null,
         addedAt: new Date().toISOString()
       };
 
