@@ -602,7 +602,7 @@ export default function Navigation() {
                               </div>
                               
                               <Link 
-                                href="/admin" 
+                                href="/admin/dashboard" 
                                 onClick={() => setShowUserMenu(false)}
                                 style={{
                                   display: 'flex',
