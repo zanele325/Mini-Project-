@@ -403,18 +403,45 @@ export default function WishlistPage() {
                   e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.04)';
                 }}
               >
-                {/* Product Image */}
+                {/* Product Image - UPDATED TO USE REAL IMAGES */}
                 <div style={{ position: 'relative', width: '100%', height: '240px', overflow: 'hidden' }}>
-                  <div style={{
-                    width: '100%',
-                    height: '100%',
-                    backgroundColor: getCultureColor(item.culture),
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '64px',
-                    transition: 'transform 0.3s'
-                  }}>
+                  {item.image || item.imageUrl ? (
+                    <img 
+                      src={item.image || item.imageUrl} 
+                      alt={item.name}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        objectPosition: 'center',
+                        display: 'block',
+                        transition: 'transform 0.3s'
+                      }}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        const fallback = e.target.parentElement.querySelector('.wishlist-image-fallback');
+                        if (fallback) fallback.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  
+                  {/* Fallback emoji (shown only if no image or image fails) */}
+                  <div 
+                    className="wishlist-image-fallback"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      backgroundColor: getCultureColor(item.culture),
+                      display: (item.image || item.imageUrl) ? 'none' : 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '64px',
+                      transition: 'transform 0.3s',
+                      position: (item.image || item.imageUrl) ? 'absolute' : 'static',
+                      top: 0,
+                      left: 0
+                    }}
+                  >
                     {getProductEmoji(item)}
                   </div>
                   
@@ -424,7 +451,8 @@ export default function WishlistPage() {
                     top: '16px',
                     left: '16px',
                     display: 'flex',
-                    gap: '8px'
+                    gap: '8px',
+                    zIndex: 10
                   }}>
                     <span style={{
                       background: 'rgba(179, 139, 89, 0.95)',
@@ -470,7 +498,8 @@ export default function WishlistPage() {
                       justifyContent: 'center',
                       cursor: 'pointer',
                       transition: 'all 0.2s',
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                      zIndex: 10
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.background = '#FEF2F2';

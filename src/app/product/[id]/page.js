@@ -289,26 +289,54 @@ export default function ProductDetailPage() {
             border: '1px solid #f0f0f0'
           }}
           className="product-main-grid">
-            {/* Gallery */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div style={{
-                position: 'relative',
-                width: '100%',
-                aspectRatio: '1',
-                background: getCultureColor(product.culture),
-                borderRadius: '20px',
-                overflow: 'hidden'
-              }}>
-                <div style={{
-                  width: '100%',
-                  height: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '120px'
-                }}>
-                  {getProductEmoji(product.category)}
-                </div>
+          {/* Gallery */}
+<div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+  <div style={{
+    position: 'relative',
+    width: '100%',
+    aspectRatio: '1',
+    background: getCultureColor(product.culture),
+    borderRadius: '20px',
+    overflow: 'hidden'
+  }}>
+    {product.imageUrl ? (
+      <img 
+        src={product.imageUrl} 
+        alt={product.name}
+        style={{
+          width:'100%',
+          height:'100%',
+          objectFit:'cover',
+          objectPosition:'center',
+          display:'block'
+        }}
+        onError={(e) => {
+          e.target.style.display = 'none';
+          const fallback = e.target.parentElement.querySelector('.product-image-fallback');
+          if (fallback) fallback.style.display = 'flex';
+        }}
+      />
+    ) : null}
+    
+    <div 
+      className="product-image-fallback"
+      style={{ 
+        backgroundColor: getCultureColor(product.culture),
+        //color: getTextColor(product.culture),
+        height:'100%',
+        width:'100%',
+        display: product.imageUrl ? 'none' : 'flex',
+        alignItems:'center',
+        justifyContent:'center',
+        position: product.imageUrl ? 'absolute' : 'static',
+        top:0,
+        left:0,
+        fontSize:'120px',
+        fontWeight:'bold'
+      }}
+    >
+      {product.name?.charAt(0) || 'P'}
+    </div>
                 
                 {product.onPromotion && (
                   <div style={{

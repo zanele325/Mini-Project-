@@ -269,20 +269,53 @@ export default function CartPage() {
                     }}
                     className="cart-item"
                   >
-                    {/* Product */}
+                    {/* Product - UPDATED TO USE REAL IMAGES */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                       <div style={{
                         width: '80px',
                         height: '80px',
-                        background: 'linear-gradient(135deg, #FFF9F0 0%, #FFE8CC 100%)',
                         borderRadius: '12px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '32px',
-                        flexShrink: 0
+                        overflow: 'hidden',
+                        flexShrink: 0,
+                        position: 'relative'
                       }}>
-                        {getProductEmoji(item.category)}
+                        {item.imageUrl || item.image ? (
+                          <img 
+                            src={item.imageUrl || item.image} 
+                            alt={item.name}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                              objectPosition: 'center',
+                              display: 'block'
+                            }}
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              const fallback = e.target.parentElement.querySelector('.cart-image-fallback');
+                              if (fallback) fallback.style.display = 'flex';
+                            }}
+                          />
+                        ) : null}
+                        
+                        {/* Fallback emoji */}
+                        <div 
+                          className="cart-image-fallback"
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            background: 'linear-gradient(135deg, #FFF9F0 0%, #FFE8CC 100%)',
+                            display: (item.imageUrl || item.image) ? 'none' : 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '32px',
+                            position: (item.imageUrl || item.image) ? 'absolute' : 'static',
+                            top: 0,
+                            left: 0
+                          }}
+                        >
+                          {getProductEmoji(item.category)}
+                        </div>
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <h3 style={{

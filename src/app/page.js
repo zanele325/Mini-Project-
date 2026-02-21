@@ -65,8 +65,43 @@ function RecommendationCard({ product, reason, onAddToCart, index }) {
       animation:`cardFadeIn 0.5s ease-out ${index * 0.1}s both`,
       display:"flex", flexDirection:"column"
     }}>
-      <div style={{ background:getCultureColor(product.culture), height:"160px", display:"flex", alignItems:"center", justifyContent:"center", position:"relative", fontSize:"52px" }}>
-        {emoji}
+      <div style={{ position:"relative", height:"160px", overflow:"hidden" }}>
+  {product.imageUrl ? (
+    <img 
+      src={product.imageUrl} 
+      alt={product.name}
+      style={{
+        width:"100%",
+        height:"100%",
+        objectFit:"cover",
+        objectPosition:"center",
+        display:"block"
+      }}
+      onError={(e) => {
+        e.target.style.display = 'none';
+        const fallback = e.target.parentElement.querySelector('.image-fallback');
+        if (fallback) fallback.style.display = 'flex';
+      }}
+    />
+  ) : null}
+  
+  <div 
+    className="image-fallback"
+    style={{ 
+      background:getCultureColor(product.culture), 
+      height:"100%", 
+      width:"100%",
+      display: product.imageUrl ? "none" : "flex", 
+      alignItems:"center", 
+      justifyContent:"center", 
+      position: product.imageUrl ? "absolute" : "static",
+      top:0,
+      left:0,
+      fontSize:"52px" 
+    }}
+  >
+    {emoji}
+  </div>
         <div style={{ position:"absolute", top:"10px", left:"10px", background:"rgba(255,255,255,0.9)", color:getTextColor(product.culture), padding:"3px 10px", borderRadius:"6px", fontSize:"11px", fontWeight:"700" }}>
           {product.culture || "Traditional"}
         </div>
@@ -437,8 +472,43 @@ export default function Home() {
                 onMouseEnter={(e) => { e.currentTarget.style.transform='translateY(-4px)'; e.currentTarget.style.boxShadow='0 12px 24px rgba(0,0,0,0.1)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='0 2px 8px rgba(0,0,0,0.06)'; }}
               >
-                <div style={{ position:'relative', backgroundColor:getCultureColor(item.culture), color:getTextColor(item.culture), height:'240px', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                  <div style={{ fontSize:'64px' }}>{getProductEmoji(item)}</div>
+                <div style={{ position:'relative', height:'240px', overflow:'hidden' }}>
+  {item.imageUrl ? (
+    <img 
+      src={item.imageUrl} 
+      alt={item.name}
+      style={{
+        width:'100%',
+        height:'100%',
+        objectFit:'cover',
+        objectPosition:'center',
+        display:'block'
+      }}
+      onError={(e) => {
+        e.target.style.display = 'none';
+        const fallback = e.target.parentElement.querySelector('.product-image-fallback');
+        if (fallback) fallback.style.display = 'flex';
+      }}
+    />
+  ) : null}
+  
+  <div 
+    className="product-image-fallback"
+    style={{ 
+      backgroundColor:getCultureColor(item.culture),
+      color:getTextColor(item.culture),
+      height:'100%',
+      width:'100%',
+      display: item.imageUrl ? 'none' : 'flex',
+      alignItems:'center',
+      justifyContent:'center',
+      position: item.imageUrl ? 'absolute' : 'static',
+      top:0,
+      left:0
+    }}
+  >
+    <div style={{ fontSize:'64px' }}>{getProductEmoji(item)}</div>
+  </div>
                   {item.onPromotion && (
                     <div style={{ position:'absolute', top:'12px', right:'12px', background:'linear-gradient(135deg,#E74C3C,#C0392B)', color:'white', padding:'6px 14px', borderRadius:'8px', fontSize:'12px', fontWeight:'700', letterSpacing:'0.5px', boxShadow:'0 4px 12px rgba(231,76,60,0.3)' }}>SALE</div>
                   )}

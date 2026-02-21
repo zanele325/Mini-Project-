@@ -302,20 +302,49 @@ export default function ShopPage() {
           <div className="shop-product-grid">
             {filteredProducts.map((product) => (
               <div key={product.id} className="enhanced-product-card">
-                {/* Product Image */}
+                {/* Product Image - UPDATED TO USE REAL IMAGES */}
                 <div className="product-image-container">
-                  <div style={{
-                    width: '100%',
-                    height: '100%',
-                    backgroundColor: product.id % 2 === 0 ? '#E8F4F8' : '#F8F4E8',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '48px'
-                  }}>
+                  {product.imageUrl ? (
+                    <img 
+                      src={product.imageUrl} 
+                      alt={product.name}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        objectPosition: 'center',
+                        display: 'block'
+                      }}
+                      onError={(e) => {
+                        // Fallback to emoji if image fails to load
+                        e.target.style.display = 'none';
+                        const fallback = e.target.parentElement.querySelector('.image-fallback');
+                        if (fallback) fallback.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  
+                  {/* Fallback emoji (shown only if no image or image fails) */}
+                  <div 
+                    className="image-fallback"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      backgroundColor: product.id % 2 === 0 ? '#E8F4F8' : '#F8F4E8',
+                      display: product.imageUrl ? 'none' : 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '48px',
+                      position: product.imageUrl ? 'absolute' : 'static',
+                      top: 0,
+                      left: 0
+                    }}
+                  >
                     {product.category === 'Jewellery' ? '💎' : 
                      product.category === 'Clothing' ? '👗' : 
-                     product.category === 'Footwear' ? '👞' : '🎁'}
+                     product.category === 'Footwear' ? '👞' : 
+                     product.category === 'Headwear' ? '👑' :
+                     product.category === 'Accessories' ? '👜' : '🎁'}
                   </div>
                   
                   <div className="product-badges">
@@ -331,9 +360,9 @@ export default function ShopPage() {
                           <li key={`feature-${product.id}-${index}`}>{feature}</li> 
                         ))}
                       </ul>
-                     <Link href={`/product/${product.id}`} className="quick-view-button">
-  View Details
-</Link>
+                      <Link href={`/product/${product.id}`} className="quick-view-button">
+                        View Details
+                      </Link>
                     </div>
                   </div>
                 </div>
@@ -399,14 +428,26 @@ export default function ShopPage() {
         )}
       </div>
 
-      {/* Add this CSS to your existing styles
       <style jsx>{`
         .wishlist-button.active {
           color: #E53E3E;
           background: #FEF2F2;
           border-color: #FC8181;
         }
-      `}</style> */}
+        
+        .product-image-container {
+          position: relative;
+          overflow: hidden;
+        }
+        
+        .product-image-container img {
+          transition: transform 0.3s ease;
+        }
+        
+        .enhanced-product-card:hover .product-image-container img {
+          transform: scale(1.05);
+        }
+      `}</style>
     </div>
   );
 }
