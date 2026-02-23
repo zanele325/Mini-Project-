@@ -246,16 +246,16 @@ export default function Navigation() {
                 }}></div>
               )}
             </Link>
-            <Link href="/about" style={{
+            <Link href="/image-search" style={{
               textDecoration: 'none',
-              color: isActive('/about') ? '#B38B59' : '#1A1A1A',
+              color: isActive('/image-search') ? '#B38B59' : '#1A1A1A',
               fontSize: '15px',
-              fontWeight: isActive('/about') ? '600' : '500',
+              fontWeight: isActive('/image-search') ? '600' : '500',
               transition: 'color 0.2s',
               position: 'relative'
             }}>
-              About
-              {isActive('/about') && (
+              Image Search
+              {isActive('/image-search') && (
                 <div style={{
                   position: 'absolute',
                   bottom: '-20px',
@@ -879,20 +879,20 @@ export default function Navigation() {
                 Cultures
               </Link>
               <Link 
-                href="/about" 
+                href="/image-search" 
                 onClick={() => setShowMobileMenu(false)}
                 style={{
                   padding: '14px 20px',
-                  color: isActive('/about') ? '#B38B59' : '#1A1A1A',
+                  color: isActive('/image-search') ? '#B38B59' : '#1A1A1A',
                   textDecoration: 'none',
                   fontSize: '16px',
-                  fontWeight: isActive('/about') ? '600' : '500',
+                  fontWeight: isActive('/image-search') ? '600' : '500',
                   borderRadius: '8px',
-                  background: isActive('/about') ? '#FFF9F0' : 'transparent',
+                  background: isActive('/image-search') ? '#FFF9F0' : 'transparent',
                   transition: 'background 0.2s'
                 }}
               >
-                About
+                Image Search
               </Link>
 
               {!user ? (

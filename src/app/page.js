@@ -590,14 +590,22 @@ export default function Home() {
         )}
 
         {/* Hero */}
-        <section style={{ background:'linear-gradient(165deg,#1A1A1A 0%,#2D2D2D 100%)', color:'white', padding:'100px 24px', position:'relative', overflow:'hidden' }}>
+       <section style={{ 
+          background:'linear-gradient(rgba(26,26,26,0.75), rgba(45,45,45,0.85)), url("https://storage.googleapis.com/gpt-engineer-file-uploads/image-gen/128d9173-6e36-41cf-af9c-0c840d63def9?Expires=1771849205&GoogleAccessId=go-api-on-aws%40gpt-engineer-390607.iam.gserviceaccount.com&Signature=GBdppWvmm4Nl9R2hSK28yBnX%2BFEGRiHxYf9LeTx6CGUHn3k7eVnofk8HjBBxoi4kdRyJBIl%2BVEw4grR8NPxjb1p2ToZZVP4pm0PW%2B4Awz0z1CW70OPTxjck9%2FJmwFSx3myXX5U6a5ezqZr4fqOS0h%2B36PaRUZb%2F9WuJ8zOA8b1Rp7mVN2CH9jjMDx3FfCFcU%2Bxc0JGZtMUr4c60dEHvccSNWE%2BWk8bNrTthF2ejH1UVGi1GWBdB4f2SKzFwmxyJSMbvfbsyflQ45XD1ViJ5zsk0YMMT%2ByEAlLQYclti6v1FPZuq%2FKrz2%2FiPwv5gOk3j97AbUeG%2BhAXHATA1ITspRxg%3D%3D")',
+          backgroundSize:'cover',
+          backgroundPosition:'center',
+          backgroundRepeat:'no-repeat',
+          color:'white', 
+          padding:'100px 24px', 
+          position:'relative', 
+          overflow:'hidden' 
+        }}>
           <div style={{ position:'absolute', top:0, right:0, width:'600px', height:'600px', background:'radial-gradient(circle,rgba(179,139,89,0.1) 0%,transparent 70%)', borderRadius:'50%', transform:'translate(30%,-30%)' }}></div>
           <div style={{ maxWidth:'1200px', margin:'0 auto', position:'relative', zIndex:1 }}>
             <div style={{ maxWidth:'700px', animation:'fadeInUp 0.8s ease-out' }}>
-              <h1 style={{ fontSize:'56px', fontWeight:'700', lineHeight:'1.15', marginBottom:'24px', fontFamily:"'Crimson Pro', serif" }}>
-                Find the right traditional attire — for the right occasion
+              <h1 style={{ fontSize:'56px', fontWeight:'700', lineHeight:'1.15', marginBottom:'24px', fontFamily:"'Crimson Pro', serif", textShadow:'0 2px 20px rgba(0,0,0,0.5)' }}>
               </h1>
-              <p style={{ fontSize:'20px', lineHeight:'1.6', color:'rgba(255,255,255,0.85)', marginBottom:'48px', fontWeight:'400' }}>
+             <p style={{ fontSize:'20px', lineHeight:'1.6', color:'rgba(255,255,255,0.95)', marginBottom:'48px', fontWeight:'400', textShadow:'0 1px 10px rgba(0,0,0,0.5)' }}>
                 Culturally appropriate clothing and jewellery for Southern African ceremonies
               </p>
 

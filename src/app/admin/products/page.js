@@ -6,6 +6,54 @@ import Link from "next/link";
 import { useAuth } from '@/src/Context/AuthContext';
 import { useRole } from '@/src/hooks/useRole';
 import { db } from '@/src/lib/firebase';
+
+// ✅ Outside parent component so it never remounts on re-render
+function ProductImage({ imageUrl, name, category }) {
+  const [imgError, setImgError] = useState(false);
+
+  const getFallbackEmoji = (cat) => {
+    const map = { Jewellery: "💎", Clothing: "👗", Headwear: "👑", Accessories: "👜", Footwear: "👞" };
+    return map[cat] || "🎁";
+  };
+
+  const wrapperStyle = {
+    width: "56px",
+    height: "56px",
+    minWidth: "56px",
+    minHeight: "56px",
+    borderRadius: "12px",
+    overflow: "hidden",
+    background: "#F1F5F9",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "24px",
+    flexShrink: 0,
+  };
+
+  const imgStyle = {
+    width: "56px",
+    height: "56px",
+    objectFit: "cover",
+    objectPosition: "center top",
+    display: "block",
+  };
+
+  return (
+    <div style={wrapperStyle}>
+      {imageUrl && !imgError ? (
+        <img
+          src={imageUrl}
+          alt={name}
+          style={imgStyle}
+          onError={() => setImgError(true)}
+        />
+      ) : (
+        <span>{getFallbackEmoji(category)}</span>
+      )}
+    </div>
+  );
+}
 import { 
   collection, 
   getDocs, 
@@ -22,7 +70,6 @@ export default function AdminProductsPage() {
   const { user } = useAuth();
   const { isAdmin, loading: roleLoading } = useRole();
   
-  // ✅ FIX: Add mounted state to prevent hydration mismatch
   const [mounted, setMounted] = useState(false);
   
   const [products, setProducts] = useState([]);
@@ -60,16 +107,13 @@ export default function AdminProductsPage() {
   const [featureInput, setFeatureInput] = useState('');
   const [tagInput, setTagInput] = useState('');
 
-  // ✅ FIX: Set mounted to true after hydration
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Categories and cultures
   const categories = ["Clothing", "Jewellery", "Accessories", "Footwear", "Headwear", "Blankets"];
   const cultures = ["Xhosa", "Zulu", "Sotho", "Ndebele", "Tswana", "Venda", "Tsonga", "Pedi"];
 
-  // ✅ FIX: Redirect non-admins only after mounted
   useEffect(() => {
     if (mounted && !roleLoading) {
       if (!isAdmin) {
@@ -78,7 +122,6 @@ export default function AdminProductsPage() {
     }
   }, [isAdmin, roleLoading, router, mounted]);
 
-  // ✅ FIX: Fetch products only after mounted
   useEffect(() => {
     if (mounted) {
       fetchProducts();
@@ -133,7 +176,6 @@ export default function AdminProductsPage() {
     setFilteredProducts(result);
   }, [searchQuery, selectedCategory, selectedCulture, products, mounted]);
 
-  // Handle form input change
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -142,77 +184,39 @@ export default function AdminProductsPage() {
     }));
   };
 
-  // Add array items
   const handleAddOccasion = () => {
     if (occasionInput.trim() && !formData.occasions.includes(occasionInput.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        occasions: [...prev.occasions, occasionInput.trim()]
-      }));
+      setFormData(prev => ({ ...prev, occasions: [...prev.occasions, occasionInput.trim()] }));
       setOccasionInput('');
     }
   };
 
   const handleAddMaterial = () => {
     if (materialInput.trim() && !formData.materials.includes(materialInput.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        materials: [...prev.materials, materialInput.trim()]
-      }));
+      setFormData(prev => ({ ...prev, materials: [...prev.materials, materialInput.trim()] }));
       setMaterialInput('');
     }
   };
 
   const handleAddFeature = () => {
     if (featureInput.trim() && !formData.features.includes(featureInput.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        features: [...prev.features, featureInput.trim()]
-      }));
+      setFormData(prev => ({ ...prev, features: [...prev.features, featureInput.trim()] }));
       setFeatureInput('');
     }
   };
 
   const handleAddTag = () => {
     if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        tags: [...prev.tags, tagInput.trim()]
-      }));
+      setFormData(prev => ({ ...prev, tags: [...prev.tags, tagInput.trim()] }));
       setTagInput('');
     }
   };
 
-  // Remove array items
-  const handleRemoveOccasion = (item) => {
-    setFormData(prev => ({
-      ...prev,
-      occasions: prev.occasions.filter(i => i !== item)
-    }));
-  };
+  const handleRemoveOccasion = (item) => setFormData(prev => ({ ...prev, occasions: prev.occasions.filter(i => i !== item) }));
+  const handleRemoveMaterial = (item) => setFormData(prev => ({ ...prev, materials: prev.materials.filter(i => i !== item) }));
+  const handleRemoveFeature = (item) => setFormData(prev => ({ ...prev, features: prev.features.filter(i => i !== item) }));
+  const handleRemoveTag = (item) => setFormData(prev => ({ ...prev, tags: prev.tags.filter(i => i !== item) }));
 
-  const handleRemoveMaterial = (item) => {
-    setFormData(prev => ({
-      ...prev,
-      materials: prev.materials.filter(i => i !== item)
-    }));
-  };
-
-  const handleRemoveFeature = (item) => {
-    setFormData(prev => ({
-      ...prev,
-      features: prev.features.filter(i => i !== item)
-    }));
-  };
-
-  const handleRemoveTag = (item) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags.filter(i => i !== item)
-    }));
-  };
-
-  // Open modal for add/edit
   const handleOpenModal = (product = null) => {
     if (product) {
       setEditingProduct(product);
@@ -252,7 +256,6 @@ export default function AdminProductsPage() {
     setIsModalOpen(true);
   };
 
-  // Save product
   const handleSaveProduct = async (e) => {
     e.preventDefault();
     
@@ -268,12 +271,10 @@ export default function AdminProductsPage() {
       };
 
       if (editingProduct) {
-        // Update existing product
         const productRef = doc(db, 'products', editingProduct.id);
         await updateDoc(productRef, productData);
         alert('Product updated successfully!');
       } else {
-        // Add new product
         productData.createdAt = new Date().toISOString();
         await addDoc(collection(db, 'products'), productData);
         alert('Product added successfully!');
@@ -289,7 +290,6 @@ export default function AdminProductsPage() {
     }
   };
 
-  // Delete product
   const handleDeleteProduct = async () => {
     if (!deleteConfirm) return;
 
@@ -307,11 +307,9 @@ export default function AdminProductsPage() {
     }
   };
 
-  // Duplicate product
   const handleDuplicateProduct = async (product) => {
     try {
       setLoading(true);
-      
       const { id, createdAt, ...productData } = product;
       const newProduct = {
         ...productData,
@@ -319,7 +317,6 @@ export default function AdminProductsPage() {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
-
       await addDoc(collection(db, 'products'), newProduct);
       alert('Product duplicated successfully!');
       fetchProducts();
@@ -331,17 +328,7 @@ export default function AdminProductsPage() {
     }
   };
 
-  // Get product emoji
-  const getProductEmoji = (category) => {
-    if (category === "Jewellery") return "💎";
-    if (category === "Clothing") return "👗";
-    if (category === "Headwear") return "👑";
-    if (category === "Accessories") return "👜";
-    if (category === "Footwear") return "👞";
-    return "🎁";
-  };
 
-  // ✅ FIX: Don't render anything until after hydration
   if (!mounted) {
     return (
       <div className="admin-loading">
@@ -365,13 +352,8 @@ export default function AdminProductsPage() {
             animation: spin 1s linear infinite;
             margin-bottom: 20px;
           }
-          @keyframes spin {
-            to { transform: rotate(360deg); }
-          }
-          p {
-            color: #64748B;
-            font-size: 16px;
-          }
+          @keyframes spin { to { transform: rotate(360deg); } }
+          p { color: #64748B; font-size: 16px; }
         `}</style>
       </div>
     );
@@ -386,9 +368,7 @@ export default function AdminProductsPage() {
     );
   }
 
-  if (!isAdmin) {
-    return null; // Will redirect via useEffect
-  }
+  if (!isAdmin) return null;
 
   return (
     <div className="admin-products-page">
@@ -399,10 +379,7 @@ export default function AdminProductsPage() {
             <h1 className="admin-title">Products</h1>
             <p className="admin-subtitle">Manage your product inventory</p>
           </div>
-          <button 
-            className="add-product-btn"
-            onClick={() => handleOpenModal()}
-          >
+          <button className="add-product-btn" onClick={() => handleOpenModal()}>
             <span className="btn-icon">+</span>
             Add New Product
           </button>
@@ -422,26 +399,14 @@ export default function AdminProductsPage() {
           </div>
 
           <div className="filter-group">
-            <select 
-              className="filter-select"
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-            >
+            <select className="filter-select" value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
               <option value="all">All Categories</option>
-              {categories.map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
+              {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
             </select>
 
-            <select 
-              className="filter-select"
-              value={selectedCulture}
-              onChange={(e) => setSelectedCulture(e.target.value)}
-            >
+            <select className="filter-select" value={selectedCulture} onChange={(e) => setSelectedCulture(e.target.value)}>
               <option value="all">All Cultures</option>
-              {cultures.map(culture => (
-                <option key={culture} value={culture}>{culture}</option>
-              ))}
+              {cultures.map(culture => <option key={culture} value={culture}>{culture}</option>)}
             </select>
           </div>
         </div>
@@ -453,21 +418,15 @@ export default function AdminProductsPage() {
             <span className="stat-label">Total Products</span>
           </div>
           <div className="stat-card">
-            <span className="stat-value">
-              {products.filter(p => p.inStock).length}
-            </span>
+            <span className="stat-value">{products.filter(p => p.inStock).length}</span>
             <span className="stat-label">In Stock</span>
           </div>
           <div className="stat-card">
-            <span className="stat-value">
-              {products.filter(p => p.salePrice).length}
-            </span>
+            <span className="stat-value">{products.filter(p => p.salePrice).length}</span>
             <span className="stat-label">On Sale</span>
           </div>
           <div className="stat-card">
-            <span className="stat-value">
-              {cultures.filter(c => products.some(p => p.culture === c)).length}
-            </span>
+            <span className="stat-value">{cultures.filter(c => products.some(p => p.culture === c)).length}</span>
             <span className="stat-label">Cultures</span>
           </div>
         </div>
@@ -503,9 +462,12 @@ export default function AdminProductsPage() {
                   <tr key={`product-${product.id}`}>
                     <td className="product-cell">
                       <div className="product-info">
-                        <div className="product-emoji">
-                          {getProductEmoji(product.category)}
-                        </div>
+                        {/* ✅ CHANGED: Now shows Firebase image with emoji fallback */}
+                        <ProductImage
+                          imageUrl={product.imageUrl}
+                          name={product.name}
+                          category={product.category}
+                        />
                         <div>
                           <div className="product-name">{product.name}</div>
                           <div className="product-description">
@@ -515,26 +477,14 @@ export default function AdminProductsPage() {
                         </div>
                       </div>
                     </td>
-                    <td>
-                      <span className="category-badge">
-                        {product.category}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="culture-badge">
-                        {product.culture || '—'}
-                      </span>
-                    </td>
+                    <td><span className="category-badge">{product.category}</span></td>
+                    <td><span className="culture-badge">{product.culture || '—'}</span></td>
                     <td>
                       <div className="price-cell">
                         {product.salePrice ? (
                           <>
-                            <span className="sale-price">
-                              R {product.salePrice.toFixed(2)}
-                            </span>
-                            <span className="original-price">
-                              R {product.price.toFixed(2)}
-                            </span>
+                            <span className="sale-price">R {product.salePrice.toFixed(2)}</span>
+                            <span className="original-price">R {product.price.toFixed(2)}</span>
                           </>
                         ) : (
                           <span>R {product.price?.toFixed(2)}</span>
@@ -558,26 +508,26 @@ export default function AdminProductsPage() {
                     </td>
                     <td>
                       <div className="action-buttons">
-                        <button 
-                          className="action-btn edit"
-                          onClick={() => handleOpenModal(product)}
-                          title="Edit product"
-                        >
-                          ✏️
+                        <button className="action-btn edit" onClick={() => handleOpenModal(product)} title="Edit product">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                          </svg>
                         </button>
-                        <button 
-                          className="action-btn duplicate"
-                          onClick={() => handleDuplicateProduct(product)}
-                          title="Duplicate product"
-                        >
-                          📋
+                        <button className="action-btn duplicate" onClick={() => handleDuplicateProduct(product)} title="Duplicate product">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                          </svg>
                         </button>
-                        <button 
-                          className="action-btn delete"
-                          onClick={() => setDeleteConfirm(product.id)}
-                          title="Delete product"
-                        >
-                          🗑️
+                        <button className="action-btn delete" onClick={() => setDeleteConfirm(product.id)} title="Delete product">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                            <path d="M10 11v6"/>
+                            <path d="M14 11v6"/>
+                            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                          </svg>
                         </button>
                       </div>
                     </td>
@@ -595,12 +545,7 @@ export default function AdminProductsPage() {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{editingProduct ? 'Edit Product' : 'Add New Product'}</h2>
-              <button 
-                className="close-btn"
-                onClick={() => setIsModalOpen(false)}
-              >
-                ✕
-              </button>
+              <button className="close-btn" onClick={() => setIsModalOpen(false)}>✕</button>
             </div>
 
             <form onSubmit={handleSaveProduct} className="modal-form">
@@ -611,54 +556,45 @@ export default function AdminProductsPage() {
                   
                   <div className="form-group">
                     <label>Product Name *</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      required
-                      placeholder="e.g. Xhosa Beaded Necklace"
-                    />
+                    <input type="text" name="name" value={formData.name} onChange={handleInputChange} required placeholder="e.g. Xhosa Beaded Necklace" />
                   </div>
 
                   <div className="form-group">
                     <label>Description</label>
-                    <textarea
-                      name="description"
-                      value={formData.description}
-                      onChange={handleInputChange}
-                      rows="3"
-                      placeholder="Describe the product, its cultural significance, etc."
-                    />
+                    <textarea name="description" value={formData.description} onChange={handleInputChange} rows="3" placeholder="Describe the product, its cultural significance, etc." />
                   </div>
 
                   <div className="form-row">
                     <div className="form-group">
                       <label>Price (R) *</label>
-                      <input
-                        type="number"
-                        name="price"
-                        value={formData.price}
-                        onChange={handleInputChange}
-                        required
-                        min="0"
-                        step="0.01"
-                        placeholder="0.00"
-                      />
+                      <input type="number" name="price" value={formData.price} onChange={handleInputChange} required min="0" step="0.01" placeholder="0.00" />
                     </div>
-
                     <div className="form-group">
                       <label>Sale Price (R)</label>
-                      <input
-                        type="number"
-                        name="salePrice"
-                        value={formData.salePrice}
-                        onChange={handleInputChange}
-                        min="0"
-                        step="0.01"
-                        placeholder="0.00"
-                      />
+                      <input type="number" name="salePrice" value={formData.salePrice} onChange={handleInputChange} min="0" step="0.01" placeholder="0.00" />
                     </div>
+                  </div>
+
+                  {/* ✅ NEW: Image URL field with live preview */}
+                  <div className="form-group">
+                    <label>Image URL</label>
+                    <input
+                      type="url"
+                      name="imageUrl"
+                      value={formData.imageUrl}
+                      onChange={handleInputChange}
+                      placeholder="https://firebasestorage.googleapis.com/..."
+                    />
+                    {formData.imageUrl && (
+                      <div className="image-preview-container">
+                        <img
+                          src={formData.imageUrl}
+                          alt="Product preview"
+                          className="image-preview"
+                          onError={(e) => { e.target.style.display = 'none'; }}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -668,29 +604,16 @@ export default function AdminProductsPage() {
                   
                   <div className="form-group">
                     <label>Category *</label>
-                    <select
-                      name="category"
-                      value={formData.category}
-                      onChange={handleInputChange}
-                      required
-                    >
-                      {categories.map(cat => (
-                        <option key={cat} value={cat}>{cat}</option>
-                      ))}
+                    <select name="category" value={formData.category} onChange={handleInputChange} required>
+                      {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                     </select>
                   </div>
 
                   <div className="form-group">
                     <label>Culture</label>
-                    <select
-                      name="culture"
-                      value={formData.culture}
-                      onChange={handleInputChange}
-                    >
+                    <select name="culture" value={formData.culture} onChange={handleInputChange}>
                       <option value="">Select Culture</option>
-                      {cultures.map(culture => (
-                        <option key={culture} value={culture}>{culture}</option>
-                      ))}
+                      {cultures.map(culture => <option key={culture} value={culture}>{culture}</option>)}
                     </select>
                   </div>
                 </div>
@@ -698,36 +621,16 @@ export default function AdminProductsPage() {
                 {/* Occasions */}
                 <div className="form-section">
                   <h3>Occasions</h3>
-                  
                   <div className="array-input-group">
                     <div className="array-input">
-                      <input
-                        type="text"
-                        value={occasionInput}
-                        onChange={(e) => setOccasionInput(e.target.value)}
-                        placeholder="e.g. Wedding, Umemulo..."
-                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddOccasion())}
-                      />
-                      <button 
-                        type="button" 
-                        onClick={handleAddOccasion}
-                        className="add-btn"
-                      >
-                        Add
-                      </button>
+                      <input type="text" value={occasionInput} onChange={(e) => setOccasionInput(e.target.value)} placeholder="e.g. Wedding, Umemulo..." onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddOccasion())} />
+                      <button type="button" onClick={handleAddOccasion} className="add-btn">Add</button>
                     </div>
-                    
                     <div className="array-items">
                       {formData.occasions.map((item) => (
                         <span key={`occasion-${item}`} className="array-item">
                           {item}
-                          <button 
-                            type="button"
-                            onClick={() => handleRemoveOccasion(item)}
-                            className="remove-item"
-                          >
-                            ✕
-                          </button>
+                          <button type="button" onClick={() => handleRemoveOccasion(item)} className="remove-item">✕</button>
                         </span>
                       ))}
                     </div>
@@ -737,36 +640,16 @@ export default function AdminProductsPage() {
                 {/* Materials */}
                 <div className="form-section">
                   <h3>Materials</h3>
-                  
                   <div className="array-input-group">
                     <div className="array-input">
-                      <input
-                        type="text"
-                        value={materialInput}
-                        onChange={(e) => setMaterialInput(e.target.value)}
-                        placeholder="e.g. Beads, Fabric, Leather..."
-                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddMaterial())}
-                      />
-                      <button 
-                        type="button" 
-                        onClick={handleAddMaterial}
-                        className="add-btn"
-                      >
-                        Add
-                      </button>
+                      <input type="text" value={materialInput} onChange={(e) => setMaterialInput(e.target.value)} placeholder="e.g. Beads, Fabric, Leather..." onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddMaterial())} />
+                      <button type="button" onClick={handleAddMaterial} className="add-btn">Add</button>
                     </div>
-                    
                     <div className="array-items">
                       {formData.materials.map((item) => (
                         <span key={`material-${item}`} className="array-item">
                           {item}
-                          <button 
-                            type="button"
-                            onClick={() => handleRemoveMaterial(item)}
-                            className="remove-item"
-                          >
-                            ✕
-                          </button>
+                          <button type="button" onClick={() => handleRemoveMaterial(item)} className="remove-item">✕</button>
                         </span>
                       ))}
                     </div>
@@ -776,76 +659,36 @@ export default function AdminProductsPage() {
                 {/* Features */}
                 <div className="form-section">
                   <h3>Features</h3>
-                  
                   <div className="array-input-group">
                     <div className="array-input">
-                      <input
-                        type="text"
-                        value={featureInput}
-                        onChange={(e) => setFeatureInput(e.target.value)}
-                        placeholder="e.g. Handmade, Adjustable..."
-                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddFeature())}
-                      />
-                      <button 
-                        type="button" 
-                        onClick={handleAddFeature}
-                        className="add-btn"
-                      >
-                        Add
-                      </button>
+                      <input type="text" value={featureInput} onChange={(e) => setFeatureInput(e.target.value)} placeholder="e.g. Handmade, Adjustable..." onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddFeature())} />
+                      <button type="button" onClick={handleAddFeature} className="add-btn">Add</button>
                     </div>
-                    
                     <div className="array-items">
                       {formData.features.map((item) => (
                         <span key={`feature-${item}`} className="array-item">
                           {item}
-                          <button 
-                            type="button"
-                            onClick={() => handleRemoveFeature(item)}
-                            className="remove-item"
-                          >
-                            ✕
-                          </button>
+                          <button type="button" onClick={() => handleRemoveFeature(item)} className="remove-item">✕</button>
                         </span>
                       ))}
                     </div>
                   </div>
                 </div>
 
-                {/* Tags - Free hand entry */}
+                {/* Tags */}
                 <div className="form-section">
                   <h3>Tags</h3>
                   <p className="field-note">Enter any keywords to help customers find this product</p>
-                  
                   <div className="array-input-group">
                     <div className="array-input">
-                      <input
-                        type="text"
-                        value={tagInput}
-                        onChange={(e) => setTagInput(e.target.value)}
-                        placeholder="e.g. traditional, beaded, ceremony..."
-                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
-                      />
-                      <button 
-                        type="button" 
-                        onClick={handleAddTag}
-                        className="add-btn"
-                      >
-                        Add Tag
-                      </button>
+                      <input type="text" value={tagInput} onChange={(e) => setTagInput(e.target.value)} placeholder="e.g. traditional, beaded, ceremony..." onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())} />
+                      <button type="button" onClick={handleAddTag} className="add-btn">Add Tag</button>
                     </div>
-                    
                     <div className="array-items tags">
                       {formData.tags.map((tag) => (
                         <span key={`tag-${tag}`} className="tag-item">
                           #{tag}
-                          <button 
-                            type="button"
-                            onClick={() => handleRemoveTag(tag)}
-                            className="remove-tag"
-                          >
-                            ✕
-                          </button>
+                          <button type="button" onClick={() => handleRemoveTag(tag)} className="remove-tag">✕</button>
                         </span>
                       ))}
                     </div>
@@ -855,46 +698,22 @@ export default function AdminProductsPage() {
                 {/* Inventory */}
                 <div className="form-section">
                   <h3>Inventory</h3>
-                  
                   <div className="form-group">
                     <label className="checkbox-label">
-                      <input
-                        type="checkbox"
-                        name="inStock"
-                        checked={formData.inStock}
-                        onChange={handleInputChange}
-                      />
+                      <input type="checkbox" name="inStock" checked={formData.inStock} onChange={handleInputChange} />
                       In Stock
                     </label>
                   </div>
-
                   <div className="form-group">
                     <label>Stock Count</label>
-                    <input
-                      type="number"
-                      name="stockCount"
-                      value={formData.stockCount}
-                      onChange={handleInputChange}
-                      min="0"
-                      placeholder="0"
-                    />
+                    <input type="number" name="stockCount" value={formData.stockCount} onChange={handleInputChange} min="0" placeholder="0" />
                   </div>
                 </div>
               </div>
 
               <div className="modal-actions">
-                <button 
-                  type="button" 
-                  className="cancel-btn"
-                  onClick={() => setIsModalOpen(false)}
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit" 
-                  className="save-btn"
-                  disabled={loading}
-                >
+                <button type="button" className="cancel-btn" onClick={() => setIsModalOpen(false)}>Cancel</button>
+                <button type="submit" className="save-btn" disabled={loading}>
                   {loading ? 'Saving...' : editingProduct ? 'Update Product' : 'Add Product'}
                 </button>
               </div>
@@ -911,17 +730,8 @@ export default function AdminProductsPage() {
             <h3>Delete Product</h3>
             <p>Are you sure you want to delete this product? This action cannot be undone.</p>
             <div className="confirm-actions">
-              <button 
-                className="cancel-btn"
-                onClick={() => setDeleteConfirm(null)}
-              >
-                Cancel
-              </button>
-              <button 
-                className="delete-btn"
-                onClick={handleDeleteProduct}
-                disabled={loading}
-              >
+              <button className="cancel-btn" onClick={() => setDeleteConfirm(null)}>Cancel</button>
+              <button className="delete-btn" onClick={handleDeleteProduct} disabled={loading}>
                 {loading ? 'Deleting...' : 'Delete'}
               </button>
             </div>
@@ -941,7 +751,6 @@ export default function AdminProductsPage() {
           margin: 0 auto;
         }
 
-        /* Header */
         .admin-header {
           display: flex;
           justify-content: space-between;
@@ -982,11 +791,8 @@ export default function AdminProductsPage() {
           box-shadow: 0 6px 20px rgba(49, 130, 206, 0.2);
         }
 
-        .btn-icon {
-          font-size: 20px;
-        }
+        .btn-icon { font-size: 20px; }
 
-        /* Filters */
         .admin-filters {
           display: flex;
           justify-content: space-between;
@@ -1011,10 +817,7 @@ export default function AdminProductsPage() {
           box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
         }
 
-        .search-icon {
-          color: #94A3B8;
-          font-size: 18px;
-        }
+        .search-icon { color: #94A3B8; font-size: 18px; }
 
         .search-input {
           flex: 1;
@@ -1024,14 +827,9 @@ export default function AdminProductsPage() {
           background: transparent;
         }
 
-        .search-input:focus {
-          outline: none;
-        }
+        .search-input:focus { outline: none; }
 
-        .filter-group {
-          display: flex;
-          gap: 12px;
-        }
+        .filter-group { display: flex; gap: 12px; }
 
         .filter-select {
           padding: 14px 20px;
@@ -1044,12 +842,8 @@ export default function AdminProductsPage() {
           min-width: 160px;
         }
 
-        .filter-select:focus {
-          outline: none;
-          border-color: #3182CE;
-        }
+        .filter-select:focus { outline: none; border-color: #3182CE; }
 
-        /* Stats */
         .admin-stats {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
@@ -1073,12 +867,8 @@ export default function AdminProductsPage() {
           margin-bottom: 8px;
         }
 
-        .stat-label {
-          color: #64748B;
-          font-size: 14px;
-        }
+        .stat-label { color: #64748B; font-size: 14px; }
 
-        /* Products Table */
         .products-table-container {
           background: white;
           border-radius: 20px;
@@ -1104,9 +894,7 @@ export default function AdminProductsPage() {
           margin-bottom: 20px;
         }
 
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         .products-table {
           width: 100%;
@@ -1125,18 +913,14 @@ export default function AdminProductsPage() {
         }
 
         .products-table td {
-          padding: 20px 16px;
+          padding: 16px;
           border-bottom: 1px solid #EDF2F7;
           color: #1A2B3C;
         }
 
-        .products-table tr:last-child td {
-          border-bottom: none;
-        }
+        .products-table tr:last-child td { border-bottom: none; }
 
-        .product-cell {
-          max-width: 300px;
-        }
+        .product-cell { max-width: 300px; }
 
         .product-info {
           display: flex;
@@ -1144,15 +928,51 @@ export default function AdminProductsPage() {
           gap: 16px;
         }
 
-        .product-emoji {
-          width: 48px;
-          height: 48px;
-          background: #F1F5F9;
+        /* ✅ NEW: Image styles */
+        .product-img-wrapper {
+          width: 56px;
+          height: 56px;
+          min-width: 56px;
+          min-height: 56px;
           border-radius: 12px;
+          overflow: hidden;
+          flex-shrink: 0;
+          background: #F1F5F9;
           display: flex;
           align-items: center;
           justify-content: center;
+        }
+
+        .product-img {
+          width: 56px;
+          height: 56px;
+          object-fit: cover;
+          object-position: center;
+          display: block;
+        }
+
+        .product-img-fallback {
           font-size: 24px;
+        }
+
+        /* ✅ NEW: Image preview in form */
+        .image-preview-container {
+          margin-top: 10px;
+          width: 100%;
+          height: 160px;
+          border-radius: 10px;
+          overflow: hidden;
+          border: 1px solid #E2E8F0;
+          background: #F8FAFC;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .image-preview {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
         }
 
         .product-name {
@@ -1177,15 +997,9 @@ export default function AdminProductsPage() {
           color: #475569;
         }
 
-        .price-cell {
-          display: flex;
-          flex-direction: column;
-        }
+        .price-cell { display: flex; flex-direction: column; }
 
-        .sale-price {
-          color: #E53E3E;
-          font-weight: 600;
-        }
+        .sale-price { color: #E53E3E; font-weight: 600; }
 
         .original-price {
           font-size: 12px;
@@ -1201,21 +1015,10 @@ export default function AdminProductsPage() {
           font-weight: 600;
         }
 
-        .stock-badge.in-stock {
-          background: #F0FDF4;
-          color: #2E7D32;
-        }
+        .stock-badge.in-stock { background: #F0FDF4; color: #2E7D32; }
+        .stock-badge.out-of-stock { background: #FEF2F2; color: #E53E3E; }
 
-        .stock-badge.out-of-stock {
-          background: #FEF2F2;
-          color: #E53E3E;
-        }
-
-        .tags-container {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 6px;
-        }
+        .tags-container { display: flex; flex-wrap: wrap; gap: 6px; }
 
         .tag {
           background: #F1F5F9;
@@ -1225,20 +1028,18 @@ export default function AdminProductsPage() {
           font-size: 11px;
         }
 
-        .tag-more {
-          color: #64748B;
-          font-size: 11px;
-          padding: 4px 8px;
-        }
+        .tag-more { color: #64748B; font-size: 11px; padding: 4px 8px; }
+
+        .action-buttons { display: flex; gap: 8px; }
 
         .action-buttons {
           display: flex;
-          gap: 8px;
+          gap: 6px;
         }
 
         .action-btn {
-          width: 36px;
-          height: 36px;
+          width: 34px;
+          height: 34px;
           border: 1px solid #E2E8F0;
           background: white;
           border-radius: 8px;
@@ -1247,53 +1048,32 @@ export default function AdminProductsPage() {
           justify-content: center;
           cursor: pointer;
           transition: all 0.2s;
-          font-size: 16px;
-        }
-
-        .action-btn.edit:hover {
-          background: #EBF8FF;
-          border-color: #3182CE;
-        }
-
-        .action-btn.duplicate:hover {
-          background: #F0FDF4;
-          border-color: #2E7D32;
-        }
-
-        .action-btn.delete:hover {
-          background: #FEF2F2;
-          border-color: #E53E3E;
-        }
-
-        /* Empty State */
-        .empty-state {
-          text-align: center;
-          padding: 60px 20px;
-        }
-
-        .empty-icon {
-          font-size: 64px;
           color: #94A3B8;
-          margin-bottom: 24px;
+          padding: 0;
         }
 
-        .empty-state h3 {
-          font-size: 20px;
-          color: #1A2B3C;
-          margin-bottom: 12px;
+        .action-btn:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
 
-        .empty-state p {
-          color: #64748B;
-        }
+        .action-btn.edit { color: #64748B; }
+        .action-btn.edit:hover { background: #EBF8FF; border-color: #3182CE; color: #3182CE; }
 
-        /* Modal */
+        .action-btn.duplicate { color: #64748B; }
+        .action-btn.duplicate:hover { background: #F0FDF4; border-color: #38A169; color: #38A169; }
+
+        .action-btn.delete { color: #64748B; }
+        .action-btn.delete:hover { background: #FEF2F2; border-color: #E53E3E; color: #E53E3E; }
+
+        .empty-state { text-align: center; padding: 60px 20px; }
+        .empty-icon { font-size: 64px; color: #94A3B8; margin-bottom: 24px; }
+        .empty-state h3 { font-size: 20px; color: #1A2B3C; margin-bottom: 12px; }
+        .empty-state p { color: #64748B; }
+
         .modal-overlay {
           position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
+          top: 0; left: 0; right: 0; bottom: 0;
           background: rgba(0,0,0,0.5);
           display: flex;
           align-items: center;
@@ -1302,10 +1082,7 @@ export default function AdminProductsPage() {
           animation: fadeIn 0.2s ease;
         }
 
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .modal-content {
           background: white;
@@ -1318,14 +1095,8 @@ export default function AdminProductsPage() {
         }
 
         @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
         }
 
         .modal-header {
@@ -1358,14 +1129,9 @@ export default function AdminProductsPage() {
           transition: all 0.2s;
         }
 
-        .close-btn:hover {
-          background: #F1F5F9;
-          color: #1A2B3C;
-        }
+        .close-btn:hover { background: #F1F5F9; color: #1A2B3C; }
 
-        .modal-form {
-          padding: 28px;
-        }
+        .modal-form { padding: 28px; }
 
         .form-grid {
           display: grid;
@@ -1440,23 +1206,10 @@ export default function AdminProductsPage() {
           accent-color: #3182CE;
         }
 
-        .field-note {
-          font-size: 12px;
-          color: #64748B;
-          margin-bottom: 12px;
-        }
+        .field-note { font-size: 12px; color: #64748B; margin-bottom: 12px; }
 
-        /* Array Inputs */
-        .array-input-group {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-
-        .array-input {
-          display: flex;
-          gap: 12px;
-        }
+        .array-input-group { display: flex; flex-direction: column; gap: 12px; }
+        .array-input { display: flex; gap: 12px; }
 
         .array-input input {
           flex: 1;
@@ -1478,16 +1231,9 @@ export default function AdminProductsPage() {
           transition: all 0.2s;
         }
 
-        .add-btn:hover {
-          background: #3182CE;
-          color: white;
-        }
+        .add-btn:hover { background: #3182CE; color: white; }
 
-        .array-items {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-        }
+        .array-items { display: flex; flex-wrap: wrap; gap: 8px; }
 
         .array-item {
           display: flex;
@@ -1513,9 +1259,7 @@ export default function AdminProductsPage() {
           justify-content: center;
         }
 
-        .remove-item:hover {
-          color: #E53E3E;
-        }
+        .remove-item:hover { color: #E53E3E; }
 
         .tag-item {
           display: flex;
@@ -1539,9 +1283,7 @@ export default function AdminProductsPage() {
           opacity: 0.7;
         }
 
-        .remove-tag:hover {
-          opacity: 1;
-        }
+        .remove-tag:hover { opacity: 1; }
 
         .modal-actions {
           display: flex;
@@ -1563,10 +1305,7 @@ export default function AdminProductsPage() {
           transition: all 0.2s;
         }
 
-        .cancel-btn:hover {
-          background: #F1F5F9;
-          border-color: #94A3B8;
-        }
+        .cancel-btn:hover { background: #F1F5F9; border-color: #94A3B8; }
 
         .save-btn {
           padding: 12px 32px;
@@ -1586,12 +1325,8 @@ export default function AdminProductsPage() {
           box-shadow: 0 6px 20px rgba(49, 130, 206, 0.2);
         }
 
-        .save-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
+        .save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        /* Confirm Modal */
         .confirm-modal {
           background: white;
           border-radius: 24px;
@@ -1601,29 +1336,10 @@ export default function AdminProductsPage() {
           animation: slideUp 0.3s ease;
         }
 
-        .confirm-icon {
-          font-size: 48px;
-          margin-bottom: 16px;
-        }
-
-        .confirm-modal h3 {
-          font-size: 20px;
-          font-weight: 700;
-          color: #1A2B3C;
-          margin-bottom: 12px;
-        }
-
-        .confirm-modal p {
-          color: #64748B;
-          margin-bottom: 24px;
-          line-height: 1.6;
-        }
-
-        .confirm-actions {
-          display: flex;
-          gap: 16px;
-          justify-content: center;
-        }
+        .confirm-icon { font-size: 48px; margin-bottom: 16px; }
+        .confirm-modal h3 { font-size: 20px; font-weight: 700; color: #1A2B3C; margin-bottom: 12px; }
+        .confirm-modal p { color: #64748B; margin-bottom: 24px; line-height: 1.6; }
+        .confirm-actions { display: flex; gap: 16px; justify-content: center; }
 
         .delete-btn {
           padding: 12px 32px;
@@ -1637,66 +1353,24 @@ export default function AdminProductsPage() {
           transition: all 0.2s;
         }
 
-        .delete-btn:hover:not(:disabled) {
-          background: #C53030;
-        }
+        .delete-btn:hover:not(:disabled) { background: #C53030; }
 
-        /* Responsive */
         @media (max-width: 1024px) {
-          .admin-filters {
-            flex-direction: column;
-          }
-
-          .filter-group {
-            width: 100%;
-          }
-
-          .filter-select {
-            flex: 1;
-          }
-
-          .admin-stats {
-            grid-template-columns: repeat(2, 1fr);
-          }
-
-          .form-grid {
-            grid-template-columns: 1fr;
-          }
+          .admin-filters { flex-direction: column; }
+          .filter-group { width: 100%; }
+          .filter-select { flex: 1; }
+          .admin-stats { grid-template-columns: repeat(2, 1fr); }
+          .form-grid { grid-template-columns: 1fr; }
         }
 
         @media (max-width: 768px) {
-          .admin-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 20px;
-          }
-
-          .add-product-btn {
-            width: 100%;
-            justify-content: center;
-          }
-
-          .filter-group {
-            flex-direction: column;
-          }
-
-          .products-table {
-            display: block;
-            overflow-x: auto;
-          }
-
-          .modal-content {
-            width: 95%;
-            margin: 20px;
-          }
-
-          .form-row {
-            grid-template-columns: 1fr;
-          }
-
-          .admin-stats {
-            grid-template-columns: 1fr;
-          }
+          .admin-header { flex-direction: column; align-items: flex-start; gap: 20px; }
+          .add-product-btn { width: 100%; justify-content: center; }
+          .filter-group { flex-direction: column; }
+          .products-table { display: block; overflow-x: auto; }
+          .modal-content { width: 95%; margin: 20px; }
+          .form-row { grid-template-columns: 1fr; }
+          .admin-stats { grid-template-columns: 1fr; }
         }
       `}</style>
     </div>
