@@ -341,7 +341,7 @@ export default function AdminOrders() {
               </div>
               <div style={{ display: 'flex', gap: '12px' }}>
                 <button
-                  onClick={() => router.push('/admin')}
+                  onClick={() => router.push('/admin/dashboard')}
                   style={{
                     padding: '12px 24px',
                     background: 'white',

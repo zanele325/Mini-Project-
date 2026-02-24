@@ -1,1043 +1,951 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { db } from '@/src/lib/firebase';
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { 
-  Calendar, 
-  Globe2, 
-  Users,
-  ArrowRight,
-  Sparkles,
-  Heart,
-  Music,
-  Gift,
-  Search,
-  Filter,
-  Check,
-  MapPin,
-  Clock,
-  TrendingUp,
-  Star,
-  Book
+import { collection, getDocs } from "firebase/firestore";
+import {
+  Calendar, Globe2, Users, ArrowRight, Sparkles,
+  Heart, Music, Gift, Search, Filter, MapPin,
+  TrendingUp, Book, ChevronRight, Star
 } from "lucide-react";
 
+/* ─── Design tokens ─────────────────────────────────────────────── */
+const T = {
+  ink:     "#1A110A",
+  clay:    "#C4622D",
+  gold:    "#E8A045",
+  straw:   "#F5E6C8",
+  cream:   "#FAF6EF",
+  sand:    "#EDE0CC",
+  forest:  "#2D5016",
+  indigo:  "#1B2A4A",
+  white:   "#FFFFFF",
+  muted:   "#7A6855",
+};
+
+/* ─── Geometric SVG pattern (Ndebele-inspired) ──────────────────── */
+function NdebeleStripe({ color = T.clay, opacity = 0.12 }) {
+  return (
+    <svg width="100%" height="8" style={{ display: "block" }}>
+      <defs>
+        <pattern id={`ndebele-${color.replace("#","")}`} x="0" y="0" width="40" height="8" patternUnits="userSpaceOnUse">
+          <rect x="0"  y="0" width="8"  height="8" fill={color} opacity={opacity * 2} />
+          <rect x="8"  y="0" width="8"  height="8" fill={color} opacity={opacity} />
+          <rect x="16" y="0" width="8"  height="8" fill={color} opacity={opacity * 2} />
+          <rect x="24" y="0" width="8"  height="8" fill={color} opacity={opacity} />
+          <rect x="32" y="0" width="8"  height="8" fill={color} opacity={opacity * 2} />
+        </pattern>
+      </defs>
+      <rect width="100%" height="8" fill={`url(#ndebele-${color.replace("#","")})`} />
+    </svg>
+  );
+}
+
+/* ─── Geometric accent block ─────────────────────────────────────── */
+function GeometricAccent({ style }) {
+  return (
+    <div style={{ position: "relative", width: 48, height: 48, ...style }}>
+      <div style={{ position: "absolute", inset: 0, background: T.clay, transform: "rotate(45deg)", opacity: 0.15 }} />
+      <div style={{ position: "absolute", inset: 8, background: T.gold, transform: "rotate(45deg)", opacity: 0.25 }} />
+    </div>
+  );
+}
+
+/* ─── Floating ink dot decoration ───────────────────────────────── */
+function DotGrid({ rows = 4, cols = 6, color = T.clay, opacity = 0.1 }) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: `repeat(${cols}, 10px)`, gap: 8 }}>
+      {Array.from({ length: rows * cols }).map((_, i) => (
+        <div key={i} style={{
+          width: 3, height: 3, borderRadius: "50%",
+          background: color, opacity: opacity + (i % 3) * 0.04
+        }} />
+      ))}
+    </div>
+  );
+}
+
+/* ─── Occasion category config ───────────────────────────────────── */
+const CAT_CONFIG = {
+  Ceremony:    { accent: "#C4622D", bg: "#FBF0E8", label: "CEREMONY",    icon: "◈" },
+  Festival:    { accent: "#2D5016", bg: "#EAF0E4", label: "FESTIVAL",    icon: "◉" },
+  Ritual:      { accent: "#1B2A4A", bg: "#E8ECF4", label: "RITUAL",      icon: "◎" },
+  Celebration: { accent: "#8B4513", bg: "#F5EDE0", label: "CELEBRATION", icon: "◇" },
+};
+
+/* ─── Helper fns (unchanged logic) ──────────────────────────────── */
+function getOccasionCategory(occasion) {
+  const low = occasion.toLowerCase();
+  if (["wedding","lobola","umembeso","initiation","umemulo"].some(w => low.includes(w))) return "Ceremony";
+  if (["heritage","festival","carnival","celebration","diwali"].some(w => low.includes(w))) return "Festival";
+  if (["imbeleko","ritual","ceremony","domba"].some(w => low.includes(w))) return "Ritual";
+  return "Celebration";
+}
+
+function generateOccasionDescription(name, culture) {
+  const map = {
+    wedding:    `A ${culture} wedding ceremony celebrating the sacred union of two families.`,
+    lobola:     "Traditional bride price negotiation — families meet to honour customs and forge lasting bonds.",
+    heritage:   "A celebration of South African diversity and unity through living tradition.",
+    kitchen:    "Women gather to shower the bride-to-be with gifts, wisdom, and blessings.",
+    graduation: "Marking academic achievement and the dawn of new possibilities.",
+    birthday:   "Honouring life and gathering family in the warmth of cultural tradition.",
+  };
+  const key = Object.keys(map).find(k => name.toLowerCase().includes(k));
+  return map[key] || `A meaningful ${culture} occasion celebrating community and heritage.`;
+}
+
+function generateAttire(culture) {
+  const specific = {
+    Zulu:    ["Isidwaba (leather skirt)", "Beaded jewellery", "Traditional headdress", "Animal skins"],
+    Xhosa:   ["White traditional wear", "Ochre body paint", "Beaded accessories", "Traditional blanket"],
+    Ndebele: ["Beaded necklaces", "Beaded apron", "Brass rings", "Geometric patterns"],
+  };
+  return (specific[culture] || ["Traditional dress", "Beaded jewellery", "Cultural accessories", "Formal wear"])
+    .map(name => ({ name }));
+}
+
+const TRENDING_STORIES = [
+  { date: "Feb 2026", category: "Wedding Trends",
+    title: "Modern Meets Traditional",
+    excerpt: "How young South Africans are blending contemporary aesthetics with time-honoured ceremonies." },
+  { date: "Feb 2026", category: "Fashion",
+    title: "Heritage Fashion Renaissance",
+    excerpt: "Traditional fabrics and beadwork taking centre stage in mainstream fashion worldwide." },
+  { date: "Jan 2026", category: "Technology",
+    title: "Culture Goes Digital",
+    excerpt: "Communities using technology to preserve and share traditional knowledge across generations." },
+];
+
+/* ═══════════════════════════════════════════════════════════════════
+   MAIN PAGE
+═══════════════════════════════════════════════════════════════════ */
 export default function OccasionsPage() {
   const router = useRouter();
-  const [selectedCulture, setSelectedCulture] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [occasions, setOccasions] = useState([]);
   const [cultures, setCultures] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [trendingStories, setTrendingStories] = useState([]);
+  const [hoveredCard, setHoveredCard] = useState(null);
+  const heroRef = useRef(null);
 
-  // Fetch occasions data from Firebase
+  /* ── Fetch ──────────────────────────────────────────────────────── */
   useEffect(() => {
-    const fetchOccasionsData = async () => {
+    const fetch = async () => {
       try {
         setLoading(true);
-        
-        // Fetch products to extract occasions data
-        const productsRef = collection(db, "products");
-        const productsSnapshot = await getDocs(productsRef);
-        
+        const snap = await getDocs(collection(db, "products"));
         const occasionsMap = new Map();
         const culturesSet = new Set();
-        const categoriesSet = new Set();
-        
-        productsSnapshot.forEach((doc) => {
-          const data = doc.data();
-          
-          // Extract cultures
-          if (data.culture) {
-            culturesSet.add(data.culture);
-          }
-          
-          // Extract occasions
-          if (data.occasions && Array.isArray(data.occasions)) {
-            data.occasions.forEach(occasion => {
-              if (!occasionsMap.has(occasion)) {
-                occasionsMap.set(occasion, {
-                  name: occasion,
-                  culture: data.culture || 'Various',
-                  products: [],
-                  region: data.region || 'National',
-                  category: getOccasionCategory(occasion)
+
+        snap.forEach(doc => {
+          const d = doc.data();
+          if (d.culture) culturesSet.add(d.culture);
+          if (Array.isArray(d.occasions)) {
+            d.occasions.forEach(occ => {
+              if (!occasionsMap.has(occ)) {
+                occasionsMap.set(occ, {
+                  name: occ, culture: d.culture || "Various",
+                  region: d.region || "National", products: []
                 });
               }
-              occasionsMap.get(occasion).products.push({
-                id: doc.id,
-                ...data
-              });
+              occasionsMap.get(occ).products.push({ id: doc.id, ...d });
             });
           }
         });
-        
-        // Convert to arrays
-        const occasionsArray = Array.from(occasionsMap.values()).map(occ => ({
-          id: occ.name.toLowerCase().replace(/\s+/g, '-'),
-          title: occ.name,
-          culture: occ.culture,
-          region: occ.region,
-          category: occ.category,
-          productCount: occ.products.length,
-          description: generateOccasionDescription(occ.name, occ.culture),
-          origins: generateOrigins(occ.name, occ.culture),
-          attire: generateAttireRecommendations(occ.name, occ.culture),
-          traditions: generateTraditions(occ.name),
-          imageId: occ.name.toLowerCase().replace(/\s+/g, ''),
-          shopLink: `/shop?occasion=${encodeURIComponent(occ.name)}`,
-          trending: Math.random() > 0.7
+
+        const arr = Array.from(occasionsMap.values()).map(o => ({
+          id: o.name.toLowerCase().replace(/\s+/g, "-"),
+          title: o.name,
+          culture: o.culture,
+          region: o.region,
+          category: getOccasionCategory(o.name),
+          productCount: o.products.length,
+          description: generateOccasionDescription(o.name, o.culture),
+          attire: generateAttire(o.culture),
+          shopLink: `/shop?occasion=${encodeURIComponent(o.name)}`,
+          trending: Math.random() > 0.65,
+          imageId: o.name.toLowerCase().replace(/\s+/g, ""),
         }));
-        
-        setOccasions(occasionsArray);
+
+        setOccasions(arr);
         setCultures(Array.from(culturesSet));
-        setCategories(Array.from(categoriesSet));
-        
-        // Generate trending stories
-        setTrendingStories(generateTrendingStories(occasionsArray));
-        
-      } catch (error) {
-        console.error("Error fetching occasions:", error);
+      } catch (e) {
+        console.error(e);
       } finally {
         setLoading(false);
       }
     };
-
-    fetchOccasionsData();
+    fetch();
   }, []);
 
-  // Helper functions
-  const getOccasionCategory = (occasion) => {
-    const ceremonies = ['wedding', 'lobola', 'umembeso', 'initiation', 'umemulo'];
-    const festivals = ['heritage', 'festival', 'carnival', 'celebration', 'diwali'];
-    const rituals = ['imbeleko', 'ritual', 'ceremony', 'domba'];
-    
-    const lowerOccasion = occasion.toLowerCase();
-    
-    if (ceremonies.some(word => lowerOccasion.includes(word))) return 'Ceremony';
-    if (festivals.some(word => lowerOccasion.includes(word))) return 'Festival';
-    if (rituals.some(word => lowerOccasion.includes(word))) return 'Ritual';
-    return 'Celebration';
-  };
-
-  const generateOccasionDescription = (name, culture) => {
-    const descriptions = {
-      'wedding': `A beautiful ${culture} wedding ceremony celebrating the union of two families and the beginning of a new chapter.`,
-      'lobola': `Traditional bride price negotiation ceremony where families come together to honor customs and establish bonds.`,
-      'heritage': 'A celebration of South African cultural diversity and unity through traditional customs and shared experiences.',
-      'kitchen': 'A joyful gathering where women celebrate the bride-to-be with gifts, advice, and blessings.',
-      'graduation': 'A significant milestone celebration marking academic achievement and future possibilities.',
-      'birthday': 'A special celebration honoring life and bringing together family and friends in cultural tradition.'
-    };
-    
-    const key = Object.keys(descriptions).find(k => name.toLowerCase().includes(k));
-    return descriptions[key] || `A significant ${culture} cultural occasion celebrating tradition and community.`;
-  };
-
-  const generateOrigins = (name, culture) => {
-    return `Dating back generations in ${culture} culture, this occasion represents the deep-rooted values and traditions that have been passed down through families, symbolizing respect, unity, and cultural preservation.`;
-  };
-
-  const generateAttireRecommendations = (name, culture) => {
-    const baseAttire = [
-      { name: "Traditional dress" },
-      { name: "Beaded jewelry" },
-      { name: "Cultural accessories" },
-      { name: "Formal wear" }
-    ];
-    
-    const cultureSpecific = {
-      'Zulu': [
-        { name: "Isidwaba (leather skirt)" },
-        { name: "Beaded jewelry" },
-        { name: "Traditional headdress" },
-        { name: "Animal skins" }
-      ],
-      'Xhosa': [
-        { name: "White traditional wear" },
-        { name: "Ochre body paint" },
-        { name: "Beaded accessories" },
-        { name: "Traditional blanket" }
-      ],
-      'Ndebele': [
-        { name: "Beaded necklaces" },
-        { name: "Beaded apron" },
-        { name: "Brass rings" },
-        { name: "Geometric patterns" }
-      ]
-    };
-    
-    return cultureSpecific[culture] || baseAttire;
-  };
-
-  const generateTraditions = (name) => {
-    return `Traditional customs include authentic attire, ceremonial practices, community gathering, traditional music and dance, and the sharing of cultural foods and beverages.`;
-  };
-
-  const generateTrendingStories = (occasionsArray) => {
-    return [
-      {
-        date: "February 2026",
-        title: "Modern Meets Traditional: The Evolution of SA Weddings",
-        excerpt: "How young South Africans are beautifully blending contemporary aesthetics with time-honored cultural ceremonies.",
-        category: "Wedding Trends"
-      },
-      {
-        date: "February 2026",
-        title: "Heritage Fashion Renaissance",
-        excerpt: "Traditional fabrics and beadwork are taking center stage in mainstream fashion, creating stunning modern interpretations.",
-        category: "Fashion"
-      },
-      {
-        date: "January 2026",
-        title: "Preserving Culture Through Digital Platforms",
-        excerpt: "Communities are using technology to document and share traditional knowledge with younger generations.",
-        category: "Technology"
-      }
-    ];
-  };
-
-  // Filter occasions
-  const filteredOccasions = occasions.filter(occasion => {
-    const matchesCulture = selectedCulture === 'all' || occasion.culture === selectedCulture;
-    const matchesCategory = selectedCategory === 'all' || occasion.category === selectedCategory;
-    const matchesSearch = !searchQuery || 
-      occasion.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      occasion.culture.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      occasion.region.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    return matchesCulture && matchesCategory && matchesSearch;
+  /* ── Filter ─────────────────────────────────────────────────────── */
+  const filtered = occasions.filter(o => {
+    const matchCat = selectedCategory === "all" || o.category === selectedCategory;
+    const matchSearch = !searchQuery ||
+      o.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      o.culture.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      o.region.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchCat && matchSearch;
   });
 
-  const getCategoryColor = (category) => {
-    const colors = {
-      'Ceremony': { bg: 'linear-gradient(135deg, #FFF9F0 0%, #FFE8CC 100%)', text: '#8B6A3D', border: '#f0e6d6' },
-      'Festival': { bg: 'linear-gradient(135deg, #F0F8FF 0%, #CCE5FF 100%)', text: '#2C5C6F', border: '#d6e9f7' },
-      'Ritual': { bg: 'linear-gradient(135deg, #F5F0FF 0%, #E6D5FF 100%)', text: '#6F2C5C', border: '#e0d6f7' },
-      'Celebration': { bg: 'linear-gradient(135deg, #F0FFF4 0%, #CCFFDC 100%)', text: '#2E8B57', border: '#d6f7e0' }
-    };
-    return colors[category] || colors['Celebration'];
-  };
-
+  /* ── Render ─────────────────────────────────────────────────────── */
   return (
     <>
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap');
-        
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400;1,700&family=Libre+Baskerville:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+          --ink:    ${T.ink};
+          --clay:   ${T.clay};
+          --gold:   ${T.gold};
+          --straw:  ${T.straw};
+          --cream:  ${T.cream};
+          --sand:   ${T.sand};
+          --forest: ${T.forest};
+          --muted:  ${T.muted};
         }
-        
-        @keyframes pulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.05); }
+
+        .occ-page { background: var(--cream); font-family: 'DM Sans', sans-serif; }
+
+        /* Loading */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner {
+          width: 52px; height: 52px;
+          border: 3px solid var(--sand);
+          border-top-color: var(--clay);
+          border-radius: 50%;
+          animation: spin 0.9s linear infinite;
         }
-        
-        @keyframes shimmer {
-          0% { background-position: -1000px 0; }
-          100% { background-position: 1000px 0; }
+
+        /* Staggered fade-in */
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(24px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
+        .fade-up { animation: fadeUp 0.7s ease both; }
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.22s; }
+        .delay-3 { animation-delay: 0.34s; }
+        .delay-4 { animation-delay: 0.46s; }
+        .delay-5 { animation-delay: 0.58s; }
+
+        /* Marquee */
+        @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+        .marquee-track { animation: marquee 28s linear infinite; }
+        .marquee-track:hover { animation-play-state: paused; }
+
+        /* Category pill */
+        .cat-pill {
+          padding: 10px 22px;
+          border-radius: 2px;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 1.5px;
+          cursor: pointer;
+          transition: all 0.2s;
+          font-family: 'DM Sans', sans-serif;
+          border: 1.5px solid transparent;
+        }
+        .cat-pill:hover { opacity: 0.85; }
+
+        /* Occasion card */
+        .occ-card {
+          background: white;
+          border: 1px solid var(--sand);
+          transition: transform 0.35s cubic-bezier(0.165, 0.84, 0.44, 1),
+                      box-shadow 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
+          cursor: pointer;
+          overflow: hidden;
+        }
+        .occ-card:hover {
+          transform: translateY(-10px);
+          box-shadow: 0 24px 60px rgba(26,17,10,0.13);
+        }
+
+        /* Story card */
+        .story-card {
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+          cursor: pointer;
+        }
+        .story-card:hover {
+          transform: translateY(-6px);
+          box-shadow: 0 16px 40px rgba(26,17,10,0.10);
+        }
+
+        /* Search input */
+        .search-input:focus { outline: none; border-color: var(--clay) !important; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--cream); }
+        ::-webkit-scrollbar-thumb { background: var(--sand); border-radius: 3px; }
+
+        /* Attire tag */
+        .attire-tag {
+          font-size: 12px;
+          font-weight: 600;
+          padding: 6px 12px;
+          border-radius: 2px;
+          letter-spacing: 0.3px;
+        }
+
+        /* CTA button */
+        .cta-btn {
+          width: 100%;
+          border: none;
+          padding: 16px;
+          font-size: 13px;
+          font-weight: 700;
+          letter-spacing: 1.5px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          transition: all 0.25s;
+          font-family: 'DM Sans', sans-serif;
+          border-radius: 2px;
+        }
+        .cta-btn:hover { filter: brightness(1.08); transform: scale(1.01); }
       `}</style>
 
-      <div style={{ minHeight: '100vh', background: '#FAFAFA' }}>
-        {/* Loading State */}
+      <div className="occ-page">
+
+        {/* ── Loading overlay ── */}
         {loading && (
           <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(8px)',
-            zIndex: 1000,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
+            position: "fixed", inset: 0,
+            background: T.cream,
+            zIndex: 9999,
+            display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center", gap: 20
           }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{
-                width: '60px',
-                height: '60px',
-                border: '4px solid #f3f3f3',
-                borderTop: '4px solid #FFB81C',
-                borderRadius: '50%',
-                animation: 'spin 1s linear infinite',
-                margin: '0 auto 24px'
-              }}></div>
-              <p style={{ color: '#666', fontSize: '16px', fontWeight: '500' }}>
-                Loading cultural occasions...
-              </p>
-            </div>
+            <div className="spinner" />
+            <p style={{ fontFamily: "'Libre Baskerville', serif", fontSize: 15, color: T.muted, letterSpacing: 1 }}>
+              Loading cultural occasions…
+            </p>
           </div>
         )}
 
-        {/* Hero Section */}
-        <section style={{
-          background: 'linear-gradient(135deg, #2C3E50 0%, #34495E 50%, #2C3E50 100%)',
-          color: 'white',
-          padding: '100px 24px 80px',
-          position: 'relative',
-          overflow: 'hidden'
+        {/* ══════════════════════════════════════════
+            HERO
+        ══════════════════════════════════════════ */}
+        <section ref={heroRef} style={{
+          background: T.ink,
+          color: T.white,
+          padding: "0 0 0",
+          position: "relative",
+          overflow: "hidden",
+          minHeight: "92vh",
+          display: "flex",
+          flexDirection: "column",
         }}>
-          {/* Decorative Elements */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            width: '800px',
-            height: '800px',
-            background: 'radial-gradient(circle, rgba(255, 184, 28, 0.15) 0%, transparent 70%)',
-            borderRadius: '50%',
-            transform: 'translate(30%, -30%)'
-          }}></div>
-          <div style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            width: '600px',
-            height: '600px',
-            background: 'radial-gradient(circle, rgba(0, 122, 77, 0.1) 0%, transparent 70%)',
-            borderRadius: '50%',
-            transform: 'translate(-30%, 30%)'
-          }}></div>
-          
-          {/* Rainbow Nation Dots */}
-          <div style={{
-            position: 'absolute',
-            top: '40px',
-            right: '40px',
-            display: 'flex',
-            gap: '12px',
-            animation: 'fadeInUp 1s ease-out'
-          }}>
-            <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#007A4D', opacity: 0.7 }}></div>
-            <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#FFB81C', opacity: 0.7 }}></div>
-            <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#DE3831', opacity: 0.7 }}></div>
-            <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#001489', opacity: 0.7 }}></div>
-          </div>
 
+          {/* Background texture pattern */}
           <div style={{
-            maxWidth: '1200px',
-            margin: '0 auto',
-            position: 'relative',
-            zIndex: 1
+            position: "absolute", inset: 0, opacity: 0.04,
+            backgroundImage: `repeating-linear-gradient(45deg, ${T.gold} 0, ${T.gold} 1px, transparent 0, transparent 50%)`,
+            backgroundSize: "20px 20px",
+          }} />
+
+          {/* Large geometric shapes */}
+          <div style={{
+            position: "absolute", right: -120, top: -120,
+            width: 520, height: 520,
+            background: `radial-gradient(circle, ${T.clay}22 0%, transparent 70%)`,
+            borderRadius: "50%",
+          }} />
+          <div style={{
+            position: "absolute", left: -60, bottom: -60,
+            width: 340, height: 340,
+            background: `radial-gradient(circle, ${T.gold}18 0%, transparent 70%)`,
+            borderRadius: "50%",
+          }} />
+
+          {/* Vertical rule */}
+          <div style={{
+            position: "absolute", top: 0, left: "50%",
+            width: 1, height: "100%",
+            background: `linear-gradient(to bottom, transparent, ${T.clay}33, transparent)`,
+          }} />
+
+          {/* Main hero content */}
+          <div style={{
+            flex: 1, display: "flex", alignItems: "center",
+            maxWidth: 1280, margin: "0 auto", width: "100%",
+            padding: "80px 48px 60px",
+            gap: 80,
+            position: "relative", zIndex: 1,
           }}>
-            <div style={{
-              textAlign: 'center',
-              animation: 'fadeInUp 0.8s ease-out'
-            }}>
-              <div style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '12px',
-                background: 'rgba(255, 255, 255, 0.1)',
-                padding: '12px 24px',
-                borderRadius: '50px',
-                marginBottom: '24px',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.2)'
+            {/* Left: Text */}
+            <div style={{ flex: "0 0 55%" }}>
+              <div className="fade-up" style={{
+                display: "inline-flex", alignItems: "center", gap: 10,
+                border: `1px solid ${T.clay}55`,
+                padding: "8px 16px", borderRadius: 2,
+                marginBottom: 32,
               }}>
-                <Calendar size={20} color="#FFB81C" />
-                <span style={{ fontSize: '14px', fontWeight: '600', letterSpacing: '0.5px' }}>
-                  DISCOVER CULTURAL OCCASIONS
+                <div style={{ width: 6, height: 6, borderRadius: "50%", background: T.gold }} />
+                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "2.5px", color: T.gold, fontFamily: "'DM Sans', sans-serif" }}>
+                  SOUTH AFRICAN CULTURAL TRADITIONS
                 </span>
               </div>
 
-              <h1 style={{
-                fontSize: '56px',
-                fontWeight: '700',
-                lineHeight: '1.15',
-                marginBottom: '24px',
-                fontFamily: "'Crimson Pro', serif"
+              <h1 className="fade-up delay-1" style={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: "clamp(42px, 5vw, 72px)",
+                fontWeight: 900,
+                lineHeight: 1.05,
+                marginBottom: 28,
+                letterSpacing: "-1px",
               }}>
-                Celebrate South African<br/>Cultural Traditions
+                Every Occasion
+                <br />
+                <em style={{ color: T.gold, fontStyle: "italic", fontWeight: 700 }}>Tells a Story</em>
               </h1>
-              
-              <p style={{
-                fontSize: '20px',
-                lineHeight: '1.6',
-                color: 'rgba(255, 255, 255, 0.9)',
-                marginBottom: '40px',
-                maxWidth: '700px',
-                margin: '0 auto 40px'
+
+              <p className="fade-up delay-2" style={{
+                fontSize: 17,
+                lineHeight: 1.8,
+                color: "rgba(255,255,255,0.72)",
+                maxWidth: 480,
+                marginBottom: 44,
+                fontFamily: "'Libre Baskerville', serif",
               }}>
-                Explore authentic ceremonies, festivals, and celebrations from across the Rainbow Nation
+                Explore authentic ceremonies, festivals, and celebrations from across the Rainbow Nation — curated with reverence for each living tradition.
               </p>
 
-              {/* Stats */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                gap: '24px',
-                maxWidth: '800px',
-                margin: '0 auto'
+              {/* Stats row */}
+              <div className="fade-up delay-3" style={{
+                display: "flex", gap: 40,
               }}>
-                <div style={{
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  padding: '24px',
-                  borderRadius: '16px',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)'
-                }}>
-                  <div style={{ fontSize: '36px', fontWeight: '700', color: '#FFB81C', marginBottom: '8px' }}>
-                    {occasions.length}+
-                  </div>
-                  <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.8)' }}>
-                    Cultural Occasions
-                  </div>
-                </div>
-                <div style={{
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  padding: '24px',
-                  borderRadius: '16px',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)'
-                }}>
-                  <div style={{ fontSize: '36px', fontWeight: '700', color: '#FFB81C', marginBottom: '8px' }}>
-                    {cultures.length}+
-                  </div>
-                  <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.8)' }}>
-                    Cultures Represented
-                  </div>
-                </div>
-                <div style={{
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  padding: '24px',
-                  borderRadius: '16px',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)'
-                }}>
-                  <div style={{ fontSize: '36px', fontWeight: '700', color: '#FFB81C', marginBottom: '8px' }}>
-                    100%
-                  </div>
-                  <div style={{ fontSize: '14px', color: 'rgba(255, 255, 255, 0.8)' }}>
-                    Authentic Traditions
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Trending Stories Section */}
-        {trendingStories.length > 0 && (
-          <section style={{ padding: '60px 24px', background: 'white' }}>
-            <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: '32px',
-                flexWrap: 'wrap',
-                gap: '16px'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <TrendingUp size={28} color="#FFB81C" />
-                  <h2 style={{
-                    fontSize: '32px',
-                    fontWeight: '700',
-                    color: '#1A1A1A',
-                    margin: 0,
-                    fontFamily: "'Crimson Pro', serif"
-                  }}>
-                    Trending Cultural Stories
-                  </h2>
-                </div>
-                <div style={{
-                  background: 'linear-gradient(135deg, #FFB81C 0%, #FF6B35 100%)',
-                  color: 'white',
-                  padding: '8px 20px',
-                  borderRadius: '50px',
-                  fontSize: '13px',
-                  fontWeight: '700',
-                  letterSpacing: '0.5px'
-                }}>
-                  TRENDING NOW
-                </div>
-              </div>
-
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-                gap: '24px'
-              }}>
-                {trendingStories.map((story, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      background: 'linear-gradient(135deg, #FFF9F0 0%, #FFF5E6 100%)',
-                      padding: '28px',
-                      borderRadius: '16px',
-                      border: '1px solid #f0e6d6',
-                      transition: 'all 0.3s ease',
-                      cursor: 'pointer'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-8px)';
-                      e.currentTarget.style.boxShadow = '0 12px 32px rgba(179, 139, 89, 0.15)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = 'none';
-                    }}
-                  >
+                {[
+                  { num: `${occasions.length || "–"}+`, label: "Occasions" },
+                  { num: `${cultures.length || "–"}+`, label: "Cultures" },
+                  { num: "100%", label: "Authentic" },
+                ].map(s => (
+                  <div key={s.label}>
                     <div style={{
-                      display: 'inline-block',
-                      background: 'white',
-                      color: '#FF6B35',
-                      padding: '6px 14px',
-                      borderRadius: '20px',
-                      fontSize: '12px',
-                      fontWeight: '700',
-                      marginBottom: '16px',
-                      border: '1px solid #FFE8CC'
-                    }}>
-                      {story.category}
-                    </div>
-                    <h3 style={{
-                      fontSize: '20px',
-                      fontWeight: '700',
-                      color: '#1A1A1A',
-                      marginBottom: '12px',
-                      lineHeight: '1.4',
-                      fontFamily: "'Crimson Pro', serif"
-                    }}>
-                      {story.title}
-                    </h3>
-                    <p style={{
-                      fontSize: '15px',
-                      color: '#666',
-                      lineHeight: '1.7',
-                      marginBottom: '16px'
-                    }}>
-                      {story.excerpt}
-                    </p>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between'
-                    }}>
-                      <span style={{ fontSize: '13px', color: '#8B6A3D', fontWeight: '600' }}>
-                        {story.date}
-                      </span>
-                      <ArrowRight size={18} color="#B38B59" />
+                      fontFamily: "'Playfair Display', serif",
+                      fontSize: 38, fontWeight: 900, color: T.gold, lineHeight: 1
+                    }}>{s.num}</div>
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", letterSpacing: 1.5, fontWeight: 600, marginTop: 4 }}>
+                      {s.label.toUpperCase()}
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-          </section>
-        )}
 
-        {/* Filters Section */}
-        <section style={{ padding: '40px 24px 0', background: '#FAFAFA' }}>
-          <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-            {/* Search Bar */}
-            <div style={{
-              background: 'white',
-              borderRadius: '16px',
-              padding: '24px',
-              marginBottom: '24px',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
-              border: '1px solid #f0f0f0'
-            }}>
-              <div style={{ position: 'relative' }}>
-                <Search size={20} color="#999" style={{
-                  position: 'absolute',
-                  left: '16px',
-                  top: '50%',
-                  transform: 'translateY(-50%)'
+            {/* Right: Decorative stacked cards preview */}
+            <div className="fade-up delay-4" style={{ flex: 1, position: "relative", height: 420 }}>
+              {/* Ghost cards */}
+              {[
+                { top: 60,  left: 40,  rot: "-6deg",  opacity: 0.25, bg: T.clay   },
+                { top: 30,  left: 20,  rot: "3deg",   opacity: 0.4,  bg: T.indigo },
+                { top: 0,   left: 0,   rot: "-1deg",  opacity: 1,    bg: T.white  },
+              ].map((c, i) => (
+                <div key={i} style={{
+                  position: "absolute",
+                  top: c.top, left: c.left,
+                  width: "calc(100% - 40px)", height: 360,
+                  background: c.bg,
+                  opacity: c.opacity,
+                  transform: `rotate(${c.rot})`,
+                  borderRadius: 4,
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
                 }} />
-                <input
-                  type="text"
-                  placeholder="Search occasions, cultures, regions..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '16px 16px 16px 48px',
-                    fontSize: '15px',
-                    border: '2px solid #e0e0e0',
-                    borderRadius: '12px',
-                    fontFamily: 'inherit',
-                    outline: 'none',
-                    transition: 'border-color 0.2s'
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = '#B38B59'}
-                  onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
-                />
+              ))}
+              {/* Top card content */}
+              <div style={{
+                position: "absolute", top: 0, left: 0,
+                width: "calc(100% - 40px)", height: 360,
+                borderRadius: 4, overflow: "hidden",
+                boxShadow: "0 16px 48px rgba(0,0,0,0.4)",
+              }}>
+                <div style={{
+                  height: "65%",
+                  background: `url('https://picsum.photos/seed/lobola/600/400') center/cover`,
+                }} />
+                <div style={{ padding: "18px 20px", background: T.white }}>
+                  <div style={{
+                    fontSize: 10, fontWeight: 700, letterSpacing: 2,
+                    color: T.clay, marginBottom: 6
+                  }}>CEREMONY · ZULU</div>
+                  <div style={{
+                    fontFamily: "'Playfair Display', serif",
+                    fontSize: 20, fontWeight: 700, color: T.ink
+                  }}>Lobola Negotiations</div>
+                  <div style={{
+                    display: "flex", justifyContent: "space-between",
+                    alignItems: "center", marginTop: 10
+                  }}>
+                    <span style={{ fontSize: 12, color: T.muted }}>KwaZulu-Natal</span>
+                    <span style={{
+                      fontSize: 11, fontWeight: 700,
+                      background: T.clay, color: T.white,
+                      padding: "4px 10px", borderRadius: 2,
+                    }}>View</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Ndebele stripe at bottom */}
+          <div style={{ opacity: 0.6 }}>
+            <NdebeleStripe color={T.clay} opacity={0.6} />
+            <NdebeleStripe color={T.gold} opacity={0.4} />
+            <NdebeleStripe color={T.forest} opacity={0.5} />
+          </div>
+        </section>
+
+        {/* ══════════════════════════════════════════
+            MARQUEE TICKER
+        ══════════════════════════════════════════ */}
+        <div style={{
+          background: T.clay, color: T.white,
+          overflow: "hidden", whiteSpace: "nowrap",
+          padding: "14px 0",
+        }}>
+          <div className="marquee-track" style={{ display: "inline-flex", gap: 48 }}>
+            {[...Array(2)].map((_, ri) => (
+              ["Lobola", "Umembeso", "Heritage Day", "Umemulo", "Imbeleko", "Domba", "Kitchen Party", "Zulu Wedding", "Ndebele Ceremony", "Xhosa Ritual"].map(item => (
+                <span key={`${ri}-${item}`} style={{
+                  fontSize: 11, fontWeight: 700, letterSpacing: "2.5px",
+                  display: "inline-flex", alignItems: "center", gap: 16,
+                }}>
+                  {item.toUpperCase()}
+                  <span style={{ opacity: 0.4 }}>◆</span>
+                </span>
+              ))
+            ))}
+          </div>
+        </div>
+
+        {/* ══════════════════════════════════════════
+            TRENDING STORIES (Editorial layout)
+        ══════════════════════════════════════════ */}
+        <section style={{ padding: "80px 48px", maxWidth: 1280, margin: "0 auto" }}>
+
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 48 }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 3, color: T.clay, marginBottom: 10 }}>
+                CULTURAL PULSE
+              </div>
+              <h2 style={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: 44, fontWeight: 900, color: T.ink, lineHeight: 1.1,
+              }}>
+                Trending Stories
+              </h2>
+            </div>
+            <DotGrid rows={3} cols={5} color={T.clay} opacity={0.18} />
+          </div>
+
+          {/* Featured story (large) + two smaller */}
+          <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 24 }}>
+            {/* Large featured */}
+            <div className="story-card" style={{
+              background: T.ink, color: T.white,
+              borderRadius: 4, overflow: "hidden",
+              gridRow: "1 / 3",
+            }}>
+              <div style={{
+                height: 280,
+                background: `url('https://picsum.photos/seed/heritage2026/800/500') center/cover`,
+                position: "relative",
+              }}>
+                <div style={{
+                  position: "absolute", inset: 0,
+                  background: `linear-gradient(to bottom, transparent 30%, ${T.ink} 100%)`,
+                }} />
+                <div style={{
+                  position: "absolute", top: 20, left: 20,
+                  background: T.clay, color: T.white,
+                  fontSize: 10, fontWeight: 700, letterSpacing: 2,
+                  padding: "6px 12px", borderRadius: 2,
+                }}>
+                  {TRENDING_STORIES[0].category.toUpperCase()}
+                </div>
+              </div>
+              <div style={{ padding: "32px 36px 36px" }}>
+                <h3 style={{
+                  fontFamily: "'Playfair Display', serif",
+                  fontSize: 28, fontWeight: 700, lineHeight: 1.3, marginBottom: 14,
+                }}>
+                  {TRENDING_STORIES[0].title}
+                </h3>
+                <p style={{ fontSize: 15, lineHeight: 1.8, color: "rgba(255,255,255,0.65)", marginBottom: 28 }}>
+                  {TRENDING_STORIES[0].excerpt}
+                </p>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span style={{ fontSize: 12, color: T.gold, fontWeight: 600 }}>{TRENDING_STORIES[0].date}</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, color: T.gold, fontSize: 13, fontWeight: 700 }}>
+                    Read more <ArrowRight size={14} />
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Filter Buttons */}
-            <div style={{
-              display: 'flex',
-              gap: '12px',
-              flexWrap: 'wrap',
-              marginBottom: '32px'
-            }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                color: '#666',
-                fontSize: '14px',
-                fontWeight: '600'
+            {/* Two smaller */}
+            {TRENDING_STORIES.slice(1).map((story, i) => (
+              <div key={i} className="story-card" style={{
+                background: T.white, border: `1px solid ${T.sand}`,
+                borderRadius: 4, overflow: "hidden",
               }}>
-                <Filter size={18} />
-                Filter by:
+                <div style={{
+                  height: 140,
+                  background: `url('https://picsum.photos/seed/story${i + 2}/600/300') center/cover`,
+                  position: "relative",
+                }}>
+                  <div style={{
+                    position: "absolute", top: 14, left: 14,
+                    background: T.ink, color: T.white,
+                    fontSize: 9, fontWeight: 700, letterSpacing: 2,
+                    padding: "4px 10px", borderRadius: 2,
+                  }}>
+                    {story.category.toUpperCase()}
+                  </div>
+                </div>
+                <div style={{ padding: "22px 24px" }}>
+                  <h3 style={{
+                    fontFamily: "'Playfair Display', serif",
+                    fontSize: 19, fontWeight: 700, color: T.ink, marginBottom: 8, lineHeight: 1.3,
+                  }}>
+                    {story.title}
+                  </h3>
+                  <p style={{ fontSize: 13, color: T.muted, lineHeight: 1.7, marginBottom: 14 }}>
+                    {story.excerpt}
+                  </p>
+                  <div style={{ fontSize: 11, color: T.clay, fontWeight: 700 }}>{story.date}</div>
+                </div>
               </div>
+            ))}
+          </div>
+        </section>
 
-              {/* Category Filters */}
-              <button
-                onClick={() => setSelectedCategory('all')}
+        {/* ══════════════════════════════════════════
+            FILTER + SEARCH BAR
+        ══════════════════════════════════════════ */}
+        <div style={{ background: T.sand, padding: "0 0 1px" }}>
+          <NdebeleStripe color={T.clay} opacity={0.3} />
+        </div>
+
+        <section style={{
+          background: T.white,
+          padding: "40px 48px",
+          position: "sticky", top: 0, zIndex: 100,
+          borderBottom: `1px solid ${T.sand}`,
+          boxShadow: "0 4px 20px rgba(26,17,10,0.06)",
+        }}>
+          <div style={{ maxWidth: 1280, margin: "0 auto", display: "flex", gap: 24, alignItems: "center", flexWrap: "wrap" }}>
+            {/* Search */}
+            <div style={{ position: "relative", flex: "1 1 280px" }}>
+              <Search size={16} color={T.muted} style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)" }} />
+              <input
+                className="search-input"
+                type="text"
+                placeholder="Search occasions, cultures, regions…"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
                 style={{
-                  padding: '10px 20px',
-                  border: selectedCategory === 'all' ? 'none' : '2px solid #e0e0e0',
-                  background: selectedCategory === 'all' 
-                    ? 'linear-gradient(135deg, #B38B59 0%, #8B6A3D 100%)' 
-                    : 'white',
-                  color: selectedCategory === 'all' ? 'white' : '#666',
-                  borderRadius: '50px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  transition: 'all 0.2s',
-                  fontFamily: 'inherit'
+                  width: "100%",
+                  padding: "13px 16px 13px 44px",
+                  fontSize: 14,
+                  border: `1.5px solid ${T.sand}`,
+                  borderRadius: 2,
+                  fontFamily: "'DM Sans', sans-serif",
+                  background: T.cream,
+                  color: T.ink,
+                  transition: "border-color 0.2s",
+                }}
+              />
+            </div>
+
+            {/* Category pills */}
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <button
+                onClick={() => setSelectedCategory("all")}
+                className="cat-pill"
+                style={{
+                  background: selectedCategory === "all" ? T.ink : "transparent",
+                  color: selectedCategory === "all" ? T.white : T.ink,
+                  borderColor: selectedCategory === "all" ? T.ink : T.sand,
                 }}
               >
-                All Categories
+                ALL
               </button>
-              
-              {['Ceremony', 'Festival', 'Ritual', 'Celebration'].map(cat => (
+              {Object.entries(CAT_CONFIG).map(([cat, cfg]) => (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
+                  className="cat-pill"
                   style={{
-                    padding: '10px 20px',
-                    border: selectedCategory === cat ? 'none' : '2px solid #e0e0e0',
-                    background: selectedCategory === cat 
-                      ? 'linear-gradient(135deg, #B38B59 0%, #8B6A3D 100%)' 
-                      : 'white',
-                    color: selectedCategory === cat ? 'white' : '#666',
-                    borderRadius: '50px',
-                    cursor: 'pointer',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    transition: 'all 0.2s',
-                    fontFamily: 'inherit'
+                    background: selectedCategory === cat ? cfg.accent : "transparent",
+                    color: selectedCategory === cat ? T.white : cfg.accent,
+                    borderColor: selectedCategory === cat ? cfg.accent : cfg.accent + "66",
                   }}
                 >
-                  {cat}
+                  {cfg.label}
                 </button>
               ))}
             </div>
 
-            {/* Results Count */}
-            <div style={{
-              fontSize: '15px',
-              color: '#666',
-              marginBottom: '32px',
-              fontWeight: '500'
-            }}>
-              Showing {filteredOccasions.length} occasion{filteredOccasions.length !== 1 ? 's' : ''}
+            {/* Count */}
+            <div style={{ fontSize: 13, color: T.muted, fontWeight: 500, marginLeft: "auto", whiteSpace: "nowrap" }}>
+              {filtered.length} occasion{filtered.length !== 1 ? "s" : ""}
             </div>
           </div>
         </section>
 
-        {/* Occasions Grid */}
-        <section style={{ padding: '0 24px 80px', background: '#FAFAFA' }}>
-          <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-            {filteredOccasions.length > 0 ? (
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
-                gap: '32px'
-              }}>
-                {filteredOccasions.map((occasion) => {
-                  const colors = getCategoryColor(occasion.category);
-                  return (
-                    <div
-                      key={occasion.id}
-                      style={{
-                        background: 'white',
-                        borderRadius: '20px',
-                        overflow: 'hidden',
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-                        transition: 'all 0.4s ease',
-                        cursor: 'pointer',
-                        border: '1px solid #f0f0f0',
-                        position: 'relative'
-                      }}
-                      onClick={() => router.push(occasion.shopLink)}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-12px)';
-                        e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.15)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)';
-                      }}
-                    >
-                      {/* Image */}
+        {/* ══════════════════════════════════════════
+            OCCASIONS GRID
+        ══════════════════════════════════════════ */}
+        <section style={{ padding: "64px 48px 100px", maxWidth: 1280, margin: "0 auto" }}>
+
+          {filtered.length > 0 ? (
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))",
+              gap: 32,
+            }}>
+              {filtered.map((occ, idx) => {
+                const cfg = CAT_CONFIG[occ.category] || CAT_CONFIG.Celebration;
+                const isHovered = hoveredCard === occ.id;
+
+                return (
+                  <div
+                    key={occ.id}
+                    className={`occ-card fade-up delay-${Math.min(idx % 5 + 1, 5)}`}
+                    onClick={() => router.push(occ.shopLink)}
+                    onMouseEnter={() => setHoveredCard(occ.id)}
+                    onMouseLeave={() => setHoveredCard(null)}
+                    style={{ borderRadius: 4 }}
+                  >
+                    {/* Image */}
+                    <div style={{ position: "relative", height: 260, overflow: "hidden" }}>
                       <div style={{
-                        height: '280px',
-                        background: `url('https://picsum.photos/seed/${occasion.imageId}/800/600') center/cover`,
-                        position: 'relative'
+                        position: "absolute", inset: 0,
+                        background: `url('https://picsum.photos/seed/${occ.imageId}/700/500') center/cover`,
+                        transform: isHovered ? "scale(1.06)" : "scale(1)",
+                        transition: "transform 0.6s cubic-bezier(0.165,0.84,0.44,1)",
+                      }} />
+                      <div style={{
+                        position: "absolute", inset: 0,
+                        background: `linear-gradient(to bottom, ${cfg.accent}22 0%, rgba(26,17,10,0.62) 100%)`,
+                      }} />
+
+                      {/* Category badge */}
+                      <div style={{
+                        position: "absolute", top: 18, left: 18,
+                        background: cfg.accent,
+                        color: T.white,
+                        fontSize: 9, fontWeight: 800, letterSpacing: 2.5,
+                        padding: "6px 12px", borderRadius: 2,
+                        display: "flex", alignItems: "center", gap: 6,
                       }}>
-                        <div style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.7) 100%)'
-                        }} />
-                        
-                        {/* Category Badge */}
-                        <div style={{
-                          position: 'absolute',
-                          top: '16px',
-                          left: '16px',
-                          background: colors.bg,
-                          color: colors.text,
-                          padding: '8px 16px',
-                          borderRadius: '20px',
-                          fontSize: '13px',
-                          fontWeight: '700',
-                          border: `1px solid ${colors.border}`,
-                          backdropFilter: 'blur(10px)'
-                        }}>
-                          {occasion.category}
-                        </div>
-
-                        {/* Trending Badge */}
-                        {occasion.trending && (
-                          <div style={{
-                            position: 'absolute',
-                            top: '16px',
-                            right: '16px',
-                            background: 'linear-gradient(135deg, #FFB81C 0%, #FF6B35 100%)',
-                            color: 'white',
-                            padding: '8px 16px',
-                            borderRadius: '20px',
-                            fontSize: '12px',
-                            fontWeight: '700',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            animation: 'pulse 2s infinite'
-                          }}>
-                            <TrendingUp size={14} />
-                            TRENDING
-                          </div>
-                        )}
-
-                        {/* Product Count */}
-                        <div style={{
-                          position: 'absolute',
-                          bottom: '16px',
-                          right: '16px',
-                          background: 'rgba(255, 255, 255, 0.95)',
-                          color: '#1A1A1A',
-                          padding: '8px 14px',
-                          borderRadius: '20px',
-                          fontSize: '13px',
-                          fontWeight: '600',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px'
-                        }}>
-                          <Gift size={14} />
-                          {occasion.productCount} items
-                        </div>
+                        <span style={{ fontSize: 12 }}>{cfg.icon}</span> {cfg.label}
                       </div>
 
-                      {/* Content */}
-                      <div style={{ padding: '28px' }}>
-                        <h3 style={{
-                          fontSize: '24px',
-                          fontWeight: '700',
-                          color: '#1A1A1A',
-                          marginBottom: '12px',
-                          lineHeight: '1.3',
-                          fontFamily: "'Crimson Pro', serif"
-                        }}>
-                          {occasion.title}
-                        </h3>
-
+                      {/* Trending badge */}
+                      {occ.trending && (
                         <div style={{
-                          display: 'flex',
-                          gap: '16px',
-                          marginBottom: '16px',
-                          flexWrap: 'wrap'
+                          position: "absolute", top: 18, right: 18,
+                          background: T.gold,
+                          color: T.ink,
+                          fontSize: 9, fontWeight: 800, letterSpacing: 2,
+                          padding: "6px 10px", borderRadius: 2,
+                          display: "flex", alignItems: "center", gap: 5,
                         }}>
-                          <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            fontSize: '14px',
-                            color: '#FF6B35',
-                            fontWeight: '600'
-                          }}>
-                            <Globe2 size={16} />
-                            {occasion.culture}
-                          </div>
-                          <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            fontSize: '14px',
-                            color: '#666',
-                            fontWeight: '500'
-                          }}>
-                            <MapPin size={16} />
-                            {occasion.region}
-                          </div>
+                          <TrendingUp size={10} /> TRENDING
                         </div>
+                      )}
 
-                        <p style={{
-                          fontSize: '15px',
-                          color: '#666',
-                          lineHeight: '1.7',
-                          marginBottom: '20px'
-                        }}>
-                          {occasion.description}
-                        </p>
-
-                        {/* Details Section */}
+                      {/* Bottom info bar */}
+                      <div style={{
+                        position: "absolute", bottom: 0, left: 0, right: 0,
+                        padding: "16px 20px",
+                        display: "flex", justifyContent: "space-between", alignItems: "flex-end",
+                      }}>
+                        <div>
+                          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", letterSpacing: 1, marginBottom: 4 }}>
+                            {occ.culture.toUpperCase()} · {occ.region.toUpperCase()}
+                          </div>
+                          <h3 style={{
+                            fontFamily: "'Playfair Display', serif",
+                            fontSize: 26, fontWeight: 700, color: T.white, lineHeight: 1.2,
+                          }}>
+                            {occ.title}
+                          </h3>
+                        </div>
                         <div style={{
-                          borderTop: '2px solid #f0f0f0',
-                          paddingTop: '20px',
-                          marginBottom: '20px'
+                          background: "rgba(255,255,255,0.15)",
+                          backdropFilter: "blur(8px)",
+                          border: "1px solid rgba(255,255,255,0.25)",
+                          color: T.white,
+                          fontSize: 11, fontWeight: 700,
+                          padding: "8px 12px", borderRadius: 2,
+                          display: "flex", alignItems: "center", gap: 6,
+                          whiteSpace: "nowrap",
                         }}>
-                          <div style={{
-                            fontSize: '14px',
-                            fontWeight: '700',
-                            color: '#B38B59',
-                            marginBottom: '12px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px'
-                          }}>
-                            <Book size={16} />
-                            Origins & Significance
-                          </div>
-                          <p style={{
-                            fontSize: '14px',
-                            color: '#666',
-                            lineHeight: '1.6',
-                            marginBottom: '16px'
-                          }}>
-                            {occasion.origins}
-                          </p>
-
-                          <div style={{
-                            fontSize: '14px',
-                            fontWeight: '700',
-                            color: '#B38B59',
-                            marginBottom: '12px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px'
-                          }}>
-                            <Music size={16} />
-                            Traditional Practices
-                          </div>
-                          <p style={{
-                            fontSize: '14px',
-                            color: '#666',
-                            lineHeight: '1.6'
-                          }}>
-                            {occasion.traditions}
-                          </p>
+                          <Gift size={12} /> {occ.productCount}
                         </div>
-
-                        {/* Attire Section */}
-                        <div style={{
-                          background: colors.bg,
-                          padding: '20px',
-                          borderRadius: '12px',
-                          border: `2px solid ${colors.border}`,
-                          marginBottom: '20px'
-                        }}>
-                          <div style={{
-                            fontSize: '15px',
-                            fontWeight: '700',
-                            color: colors.text,
-                            marginBottom: '16px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px'
-                          }}>
-                            <Users size={16} />
-                            Recommended Attire
-                          </div>
-                          <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(2, 1fr)',
-                            gap: '12px'
-                          }}>
-                            {occasion.attire.map((item, idx) => (
-                              <div
-                                key={idx}
-                                style={{
-                                  background: 'white',
-                                  padding: '12px 16px',
-                                  borderRadius: '10px',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '10px',
-                                  border: `1px solid ${colors.border}`
-                                }}
-                              >
-                                <div style={{
-                                  width: '6px',
-                                  height: '6px',
-                                  borderRadius: '50%',
-                                  background: colors.text,
-                                  flexShrink: 0
-                                }} />
-                                <span style={{
-                                  fontSize: '13px',
-                                  fontWeight: '600',
-                                  color: '#1A1A1A'
-                                }}>
-                                  {item.name}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* CTA Button */}
-                        <button
-                          style={{
-                            width: '100%',
-                            background: 'linear-gradient(135deg, #2E8B57 0%, #228B4A 100%)',
-                            color: 'white',
-                            border: 'none',
-                            padding: '16px',
-                            borderRadius: '12px',
-                            fontSize: '15px',
-                            fontWeight: '700',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '10px',
-                            transition: 'all 0.2s',
-                            boxShadow: '0 4px 16px rgba(46, 139, 87, 0.2)',
-                            fontFamily: 'inherit'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = 'scale(1.02)';
-                            e.currentTarget.style.boxShadow = '0 6px 20px rgba(46, 139, 87, 0.3)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = 'scale(1)';
-                            e.currentTarget.style.boxShadow = '0 4px 16px rgba(46, 139, 87, 0.2)';
-                          }}
-                        >
-                          <Gift size={18} />
-                          Shop {occasion.productCount} Items
-                          <ArrowRight size={18} />
-                        </button>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            ) : (
+
+                    {/* Body */}
+                    <div style={{ padding: "26px 28px 28px" }}>
+                      <p style={{
+                        fontSize: 14, lineHeight: 1.75, color: T.muted,
+                        marginBottom: 22,
+                        fontFamily: "'Libre Baskerville', serif",
+                      }}>
+                        {occ.description}
+                      </p>
+
+                      {/* Attire chips */}
+                      <div style={{ marginBottom: 24 }}>
+                        <div style={{
+                          fontSize: 10, fontWeight: 700, letterSpacing: 2,
+                          color: cfg.accent, marginBottom: 10,
+                        }}>
+                          TRADITIONAL ATTIRE
+                        </div>
+                        <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                          {occ.attire.map((a, i) => (
+                            <span key={i} className="attire-tag" style={{
+                              background: cfg.bg,
+                              color: cfg.accent,
+                              border: `1px solid ${cfg.accent}33`,
+                            }}>
+                              {a.name}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Divider with geometric mark */}
+                      <div style={{
+                        display: "flex", alignItems: "center", gap: 12, marginBottom: 20,
+                      }}>
+                        <div style={{ flex: 1, height: 1, background: T.sand }} />
+                        <div style={{ width: 6, height: 6, background: cfg.accent, transform: "rotate(45deg)", opacity: 0.5 }} />
+                        <div style={{ flex: 1, height: 1, background: T.sand }} />
+                      </div>
+
+                      {/* CTA */}
+                      <button
+                        className="cta-btn"
+                        style={{ background: cfg.accent, color: T.white }}
+                        onClick={e => { e.stopPropagation(); router.push(occ.shopLink); }}
+                      >
+                        <Gift size={15} />
+                        SHOP {occ.productCount} ITEMS
+                        <ArrowRight size={15} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            /* Empty state */
+            <div style={{
+              textAlign: "center", padding: "100px 24px",
+              background: T.white, borderRadius: 4,
+              border: `2px dashed ${T.sand}`,
+            }}>
               <div style={{
-                textAlign: 'center',
-                padding: '80px 24px',
-                background: 'white',
-                borderRadius: '20px',
-                border: '2px dashed #e0e0e0'
+                width: 64, height: 64, margin: "0 auto 24px",
+                background: T.straw, borderRadius: "50%",
+                display: "flex", alignItems: "center", justifyContent: "center",
               }}>
-                <Search size={48} color="#999" style={{ marginBottom: '16px' }} />
-                <h3 style={{
-                  fontSize: '24px',
-                  fontWeight: '700',
-                  color: '#1A1A1A',
-                  marginBottom: '12px'
-                }}>
-                  No occasions found
-                </h3>
-                <p style={{ fontSize: '16px', color: '#666', marginBottom: '24px' }}>
-                  Try adjusting your filters or search query
-                </p>
-                <button
-                  onClick={() => {
-                    setSelectedCategory('all');
-                    setSelectedCulture('all');
-                    setSearchQuery('');
-                  }}
-                  style={{
-                    background: 'linear-gradient(135deg, #B38B59 0%, #8B6A3D 100%)',
-                    color: 'white',
-                    border: 'none',
-                    padding: '14px 32px',
-                    borderRadius: '12px',
-                    fontSize: '15px',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    fontFamily: 'inherit'
-                  }}
-                >
-                  Reset Filters
-                </button>
+                <Search size={28} color={T.clay} />
               </div>
-            )}
-          </div>
+              <h3 style={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: 26, fontWeight: 700, color: T.ink, marginBottom: 10,
+              }}>
+                No occasions found
+              </h3>
+              <p style={{ fontSize: 15, color: T.muted, marginBottom: 28 }}>
+                Try adjusting your filters or search query
+              </p>
+              <button
+                onClick={() => { setSelectedCategory("all"); setSearchQuery(""); }}
+                style={{
+                  background: T.clay, color: T.white,
+                  border: "none", padding: "14px 32px", borderRadius: 2,
+                  fontSize: 12, fontWeight: 700, letterSpacing: 2,
+                  cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
+                }}
+              >
+                RESET FILTERS
+              </button>
+            </div>
+          )}
         </section>
 
-        {/* Ubuntu Quote Section */}
+        {/* ══════════════════════════════════════════
+            UBUNTU CLOSING QUOTE
+        ══════════════════════════════════════════ */}
+        <div>
+          <NdebeleStripe color={T.forest} opacity={0.5} />
+          <NdebeleStripe color={T.gold}   opacity={0.4} />
+          <NdebeleStripe color={T.clay}   opacity={0.6} />
+        </div>
+
         <section style={{
-          padding: '80px 24px',
-          background: 'linear-gradient(135deg, #2C3E50 0%, #34495E 100%)',
-          color: 'white',
-          textAlign: 'center'
+          background: T.ink,
+          color: T.white,
+          padding: "100px 48px",
+          textAlign: "center",
+          position: "relative",
+          overflow: "hidden",
         }}>
-          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+          {/* Background geo pattern */}
+          <div style={{
+            position: "absolute", inset: 0, opacity: 0.03,
+            backgroundImage: `repeating-linear-gradient(45deg, ${T.gold} 0, ${T.gold} 1px, transparent 0, transparent 50%)`,
+            backgroundSize: "20px 20px",
+          }} />
+          <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", opacity: 0.1 }}>
+            <DotGrid rows={2} cols={16} color={T.gold} opacity={0.4} />
+          </div>
+
+          <div style={{ maxWidth: 700, margin: "0 auto", position: "relative", zIndex: 1 }}>
             <div style={{
-              fontSize: '48px',
-              marginBottom: '24px',
-              opacity: 0.3
+              fontFamily: "'Playfair Display', serif",
+              fontSize: 100, lineHeight: 0.6,
+              color: T.clay, opacity: 0.4, marginBottom: 12,
             }}>
               "
             </div>
             <h2 style={{
-              fontSize: '36px',
-              fontWeight: '700',
-              marginBottom: '16px',
-              fontFamily: "'Crimson Pro', serif",
-              lineHeight: '1.4'
+              fontFamily: "'Playfair Display', serif",
+              fontSize: "clamp(28px, 4vw, 46px)",
+              fontWeight: 700, marginBottom: 20, lineHeight: 1.3,
+              fontStyle: "italic",
             }}>
               Ubuntu: I am because we are
             </h2>
+            <div style={{ width: 48, height: 2, background: T.gold, margin: "0 auto 24px" }} />
             <p style={{
-              fontSize: '18px',
-              lineHeight: '1.7',
-              color: 'rgba(255, 255, 255, 0.9)'
+              fontSize: 16, lineHeight: 1.9,
+              color: "rgba(255,255,255,0.65)",
+              fontFamily: "'Libre Baskerville', serif",
             }}>
-              Celebrating the spirit of togetherness through our vibrant traditions. Each occasion connects us to our ancestors, our community, and the rich tapestry of South African culture.
+              Celebrating the spirit of togetherness through vibrant traditions. Each occasion connects us to our ancestors, our community, and the rich tapestry of South African culture.
             </p>
           </div>
         </section>
+
       </div>
     </>
   );
