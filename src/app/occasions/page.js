@@ -10,7 +10,7 @@ import {
   TrendingUp, Book, ChevronRight, Star
 } from "lucide-react";
 
-/* ─── Design tokens ─────────────────────────────────────────────── */
+/* ─── Design tokens */
 const T = {
   ink:     "#1A110A",
   clay:    "#C4622D",

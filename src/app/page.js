@@ -518,8 +518,8 @@ export default function Home() {
 
             
             <img
-              src="https://i.pinimg.com/originals/3b/93/16/3b931692cec9bf04bf08a71ce98831c4.jpg"
-              alt="Vibrant Southern African beadwork and traditional textiles"
+              src="https://th.bing.com/th/id/OIP.aVj704ybpx3X2gTPuv0LzgHaEz?w=299&h=194&c=7&r=0&o=7&pid=1.7&rm=3"
+              alt="Vibrant South African beadwork and traditional textiles"
               onLoad={()=>setImgLoaded(true)}
               style={{ position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",
                 objectPosition:"center 40%",display:"block",
@@ -565,7 +565,7 @@ export default function Home() {
                 <div style={{ width:"5px",height:"5px",borderRadius:"50%",background:"#d4a855" }}/>
                 <span style={{ fontSize:"10px",fontWeight:"600",color:"#d4a855",
                   letterSpacing:"0.14em",textTransform:"uppercase",fontFamily:"var(--body)" }}>
-                  Southern African Heritage
+                  South African Heritage
                 </span>
               </div>
 
@@ -579,7 +579,7 @@ export default function Home() {
 
               <p style={{ fontSize:"17px",lineHeight:"1.8",color:"rgba(245,237,216,0.62)",
                 marginBottom:"50px",fontWeight:"300",fontFamily:"var(--body)",maxWidth:"480px" }}>
-                Culturally appropriate clothing and jewellery for Southern African ceremonies — guided by tradition, matched by AI.
+                Culturally appropriate clothing and jewellery for South African ceremonies — guided by tradition, matched by AI.
               </p>
 
               {/* ── Search card ── */}
@@ -685,7 +685,7 @@ export default function Home() {
                 icon={<Globe2 size={21} color="#2C5C6F"/>}
                 accentFrom="#2C5C6F" accentTo="#1E4250"
                 title="Browse by Culture"
-                body="Explore authentic attire and jewellery from specific cultural traditions across Southern Africa."
+                body="Explore authentic attire and jewellery from specific cultural traditions across South Africa."
                 tags={cultures.length>0?cultures:["Xhosa","Zulu","Sotho","Ndebele"]}
                 tagColor="#2C5C6F" tagBg="#f0f8ff" tagBorder="#c8def0"
                 cta="Explore cultures" href="/shop?filter=culture"
@@ -743,7 +743,7 @@ export default function Home() {
               border:"1px solid rgba(139,106,61,0.18)",borderRadius:"18px",overflow:"hidden" }}>
               {[
                 { icon:Scissors, title:"Authentic Design",
-                  body:"Carefully curated attire inspired by real cultural practices, made by artisans across Southern Africa." },
+                  body:"Carefully curated attire inspired by real cultural practices, made by artisans across South Africa." },
                 { icon:Brain, title:"AI Recommendations",
                   body:"Our AI understands cultural context to help you choose attire that is respectful, appropriate, and beautiful." },
                 { icon:Users, title:"Community Focused",
@@ -785,7 +785,7 @@ export default function Home() {
                 </div>
                 <p style={{ color:"rgba(255,255,255,0.35)",fontSize:"13px",lineHeight:"1.75",
                   fontFamily:"var(--body)",maxWidth:"250px" }}>
-                  Culturally respectful traditional attire for Southern African ceremonies. "iSiko" means "Culture."
+                  Culturally respectful traditional attire for South African ceremonies. "iSiko" means "Culture."
                 </p>
               </div>
               {[
@@ -834,7 +834,7 @@ export default function Home() {
                 © 2024 iSiko Studio. All rights reserved.
               </p>
               <p style={{ color:"rgba(255,255,255,0.18)",fontSize:"12px",margin:0,fontFamily:"var(--body)" }}>
-                Made with care for Southern African heritage
+                Made with care for South African heritage
               </p>
             </div>
           </div>
