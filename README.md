@@ -4,7 +4,7 @@ https://mini-project-beta-pink.vercel.app/
 The application uses Next.js which follows a component-based MVC-inspired architecture. Pages serve as Views, API routes act as Controllers, and Firebase Firestore serves as the Model layer.
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-## Getting Started
+## How to run the app
 
 First, run the development server:
 
@@ -28,7 +28,6 @@ password: @ZandileHlungwani2
 
 email: admin@gmail.com
 password: admin1
-
 
 ## Deploy on Vercel
 
