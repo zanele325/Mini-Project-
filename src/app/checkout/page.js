@@ -100,34 +100,31 @@ export default function CheckoutPage() {
         const orderNum = 'ORD-' + Date.now().toString().slice(-8);
         setOrderNumber(orderNum);
 
-        const orderData = {
-          orderNumber: orderNum,
-          customer: {
-            uid: user?.uid || 'guest',
-            email: shippingInfo.email || user?.email,
-            name: shippingInfo.fullName,
-            phone: shippingInfo.phone,
-            isGuest: isGuest
-          },
-          shipping: shippingInfo,
-          paymentMethod: paymentMethod,
-          paymentStatus: paymentMethod === 'cod' ? 'pending' : 'paid',
-          orderStatus: 'processing',
-          items: cartItems.map(item => ({
-            id: item.id,
-            name: item.name,
-            price: item.salePrice || item.price,
-            quantity: item.quantity,
-            culture: item.culture,
-            category: item.category
-          })),
-          subtotal: subtotal,
-          shipping: shipping,
-          tax: tax,
-          total: total,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
+       const orderData = {
+  orderNumber: orderNum,
+  userId: user?.uid,
+  customerName: shippingInfo.fullName,
+  customerEmail: shippingInfo.email,
+  customerPhone: shippingInfo.phone,
+  shippingAddress: `${shippingInfo.address}, ${shippingInfo.city}, ${shippingInfo.province}, ${shippingInfo.postalCode}`,
+  status: 'pending',
+  paymentMethod: paymentMethod,
+  items: cartItems.map(item => ({
+    id: item.id,
+    name: item.name,
+    price: item.salePrice || item.price,
+    quantity: item.quantity,
+    imageUrl: item.imageUrl || '',
+    culture: item.culture,
+    category: item.category
+  })),
+  subtotal: subtotal,
+  shipping: shipping,
+  tax: tax,
+  total: total,
+  createdAt: serverTimestamp(),
+  updatedAt: serverTimestamp()
+};
 
         if (user) {
           await addDoc(collection(db, 'orders'), orderData);

@@ -58,7 +58,7 @@ export default function CartPage() {
   };
 
   const handleCheckout = () => {
-    if (!user && !isGuest) {
+    if (!user || !isGuest) {
       router.push('/login?redirect=/checkout');
     } else {
       router.push('/checkout');
