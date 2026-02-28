@@ -107,15 +107,27 @@ function generateAttire(culture) {
 }
 
 const TRENDING_STORIES = [
-  { date: "Feb 2026", category: "Wedding Trends",
+  {
+    date: "Nov 2025",
+    category: "Wedding Trends",
     title: "Modern Meets Traditional",
-    excerpt: "How young South Africans are blending contemporary aesthetics with time-honoured ceremonies." },
-  { date: "Feb 2026", category: "Fashion",
+    excerpt: "How young South Africans are blending contemporary aesthetics with time-honoured ceremonies.",
+    url: "https://www.weddingetc.co.za/modern-wedding-trends-2025-no-rules/",
+  },
+  {
+    date: "Feb 2025",
+    category: "Fashion",
     title: "Heritage Fashion Renaissance",
-    excerpt: "Traditional fabrics and beadwork taking centre stage in mainstream fashion worldwide." },
-  { date: "Jan 2026", category: "Technology",
+    excerpt: "Traditional fabrics and beadwork taking centre stage in mainstream fashion worldwide.",
+    url: "https://africanfashioninternational.com/blogs/insider/afrothencity-the-biggest-african-fashion-and-lifestyle-trend-of-2025",
+  },
+  {
+    date: "Dec 2025",
+    category: "Technology",
     title: "Culture Goes Digital",
-    excerpt: "Communities using technology to preserve and share traditional knowledge across generations." },
+    excerpt: "Communities using technology to preserve and share traditional knowledge across generations.",
+    url: "https://brandsouthafrica.com/180307/international-news/digital-heritage-preserving-south-african-culture-in-the-metaverse/",
+  },
 ];
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -584,21 +596,26 @@ export default function OccasionsPage() {
                 <p style={{ fontSize: 15, lineHeight: 1.8, color: "rgba(255,255,255,0.65)", marginBottom: 28 }}>
                   {TRENDING_STORIES[0].excerpt}
                 </p>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <span style={{ fontSize: 12, color: T.gold, fontWeight: 600 }}>{TRENDING_STORIES[0].date}</span>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, color: T.gold, fontSize: 13, fontWeight: 700 }}>
-                    Read more <ArrowRight size={14} />
-                  </div>
-                </div>
+                          <div
+              style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}
+              onClick={() => window.open(TRENDING_STORIES[0].url, "_blank", "noopener noreferrer")}
+            >
+              <span style={{ fontSize:12, color:T.gold, fontWeight:600 }}>{TRENDING_STORIES[0].date}</span>
+              <div style={{ display:"flex", alignItems:"center", gap:8, color:T.gold, fontSize:13, fontWeight:700, cursor:"pointer" }}>
+                Read more <ArrowRight size={14}/>
+              </div>
+            </div>
               </div>
             </div>
 
             {/* Two smaller */}
             {TRENDING_STORIES.slice(1).map((story, i) => (
-              <div key={i} className="story-card" style={{
-                background: T.white, border: `1px solid ${T.sand}`,
-                borderRadius: 4, overflow: "hidden",
-              }}>
+            <div
+              key={i}
+              className="story-card"
+              onClick={() => window.open(story.url, "_blank", "noopener noreferrer")}
+              style={{ background:T.white, border:`1px solid ${T.sand}`, borderRadius:4, overflow:"hidden" }}
+            >
                 <div style={{
                   height: 140,
                   background: `url('https://picsum.photos/seed/story${i + 2}/600/300') center/cover`,

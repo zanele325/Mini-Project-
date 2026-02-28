@@ -513,12 +513,15 @@ export default function Home() {
           {/* ── Background photo ── */}
           <div style={{ position:"absolute",inset:0,zIndex:0 }}>
             {/* Warm fallback while photo loads */}
-            <div style={{ position:"absolute",inset:0,
-              background:"linear-gradient(135deg,#1a1208 0%,#2d1f0e 60%,#3d2510 100%)" }}/>
+            <img
+  src="https://media.istockphoto.com/id/157379448/photo/zulu-beadwork-from-south-africa.webp?a=1&b=1&s=612x612&w=0&k=20&c=S8OANwaUf-Tx_vaP0sK35dCTPmWi9vsIbnSt3UZccQ8="
+  alt="South African beadwork"
+  style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"center" }}
+/>
 
             
             <img
-              src="https://th.bing.com/th/id/OIP.aVj704ybpx3X2gTPuv0LzgHaEz?w=299&h=194&c=7&r=0&o=7&pid=1.7&rm=3"
+              src="https://plus.unsplash.com/premium_photo-1701215213248-dff85a0116d7?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8enVsdSUyMGJlYWRzfGVufDB8fDB8fHww"
               alt="Vibrant South African beadwork and traditional textiles"
               onLoad={()=>setImgLoaded(true)}
               style={{ position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",
